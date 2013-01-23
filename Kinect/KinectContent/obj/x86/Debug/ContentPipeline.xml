@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Pipeline="Microsoft.Xna.Framework.Content.Pipeline">
+  <Asset Type="Pipeline:BuildItemCollection">
+    <BuildSuccessful>true</BuildSuccessful>
+    <Settings>
+      <TargetPlatform>Windows</TargetPlatform>
+      <TargetProfile>HiDef</TargetProfile>
+      <BuildConfiguration>Debug</BuildConfiguration>
+      <CompressContent>false</CompressContent>
+      <RootDirectory>C:\Users\yuhao93\Documents\Visual Studio 2012\Projects\Kinect\Kinect\KinectContent\</RootDirectory>
+      <LoggerRootDirectory>C:\Users\yuhao93\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\</LoggerRootDirectory>
+      <IntermediateDirectory>C:\Users\yuhao93\Documents\Visual Studio 2012\Projects\Kinect\Kinect\KinectContent\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>C:\Users\yuhao93\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\</OutputDirectory>
+    </Settings>
+    <Assemblies>
+      <Assembly>
+        <Key>C:\windows\Microsoft.Net\assembly\GAC_32\Microsoft.Xna.Framework.Content.Pipeline\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Content.Pipeline.dll</Key>
+        <Value>2013-01-10T21:28:06.4216819-08:00</Value>
+      </Assembly>
+    </Assemblies>
+  </Asset>
+</XnaContent>
