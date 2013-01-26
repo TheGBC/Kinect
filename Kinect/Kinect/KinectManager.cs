@@ -163,8 +163,7 @@ namespace KinectSample {
 
       // List of all the points
       Vector3[] allPoints = new Vector3[WIDTH * HEIGHT];
-
-      Dictionary<int, Vector3> normalPoints = new Dictionary<int, Vector3>();
+      List<Vector3> lowerSet = new List<Vector3>();
 
       // Start from the bottom up, selecting the points most likely on the ground
       for (int y = HEIGHT - 1; y >= 0; y--) {
@@ -181,10 +180,61 @@ namespace KinectSample {
             continue;
           } else {
             seenValues.Add(hashIndex);
-            depthPlanePoints.Add(v);
+            lowerSet.Add(v);
+            //depthPlanePoints.Add(v);
           }
         }
       }
+      
+      ulong squareValue = ulong.MaxValue;
+      int iterations = 10;
+      int count = 0;
+      Random randomGenerator = new Random();
+      Plane plane = null;
+
+      // We can't build a plane with less than 3 points
+      if (lowerSet.Count < 3) {
+        return;
+      }
+
+      while (count < iterations) {
+        // Get three random points from the lowerSet
+        ulong currentSquares = 0;
+        Vector3[] points = selectRandomPoints(lowerSet, randomGenerator);
+        Vector3 v1 = points[0] - points[1];
+        Vector3 v2 = points[0] - points[2];
+        Vector3 p = points[0];
+        Plane planeCandidate = new Plane(v1, v2, p);
+        foreach (Vector3 point in lowerSet) {
+          double dist = planeCandidate.getDistance(point);
+          currentSquares += (ulong)(dist * dist);
+        }
+
+        if (currentSquares > squareValue) {
+          count++;
+        } else {
+          squareValue = currentSquares;
+          plane = planeCandidate;
+          count = 0;
+        }
+      }
+
+      foreach(Vector3 p in allPoints){
+        if (Math.Abs(plane.getDistance(p)) < 5) {
+          depthPlanePoints.Add(p);
+        }
+      }
+    }
+
+    // Returns three random points selected from the list
+    private Vector3[] selectRandomPoints(List<Vector3> points, Random generator) {
+      Vector3[] randList = new Vector3[3];
+      for (int i = 0; i < 3; i++) {
+        int ind = generator.Next(points.Count - i) + i;
+        randList[i] = points[ind];
+        points[ind] = points[i];
+      }
+      return randList;
     }
 
     private Vector3 normalVector(Vector3 point, Vector3 up, Vector3 down, Vector3 left, Vector3 right) {
