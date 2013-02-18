@@ -8,10 +8,10 @@
       <Processor>ModelProcessor</Processor>
       <Options>None</Options>
       <Output>C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\arrow.xnb</Output>
-      <Time>2013-02-17T19:50:28.1546922-08:00</Time>
+      <Time>2013-02-18T00:14:08.5017131-08:00</Time>
       <Dependency>
         <Key>obj\x86\Debug\arrow_0.xml</Key>
-        <Value>2013-02-17T19:50:30.8810325-08:00</Value>
+        <Value>2013-02-18T00:14:12.5829045-08:00</Value>
       </Dependency>
     </Item>
     <Item>
@@ -19,7 +19,7 @@
       <Importer>FbxImporter</Importer>
       <Options>IntermediateFile, DontCacheImportedData</Options>
       <Output>obj\x86\Debug\arrow_0.xml</Output>
-      <Time>2013-02-17T19:50:28.1546922-08:00</Time>
+      <Time>2013-02-18T00:14:08.5017131-08:00</Time>
     </Item>
     <BuildSuccessful>true</BuildSuccessful>
     <Settings>

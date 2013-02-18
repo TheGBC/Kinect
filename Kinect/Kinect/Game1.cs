@@ -11,21 +11,15 @@ using Microsoft.Xna.Framework.Media;
 using Microsoft.Kinect;
 using System.Diagnostics;
 using System.Threading;
+using Kinect;
 
 namespace KinectSample {
   public class Game1 : Microsoft.Xna.Framework.Game {
     // Graphics Device and Objects used to render onscreen
-    private Model arrow;
-    private Vector3 Position = new Vector3(-2, -1f, 2);
-
-    private float Zoom = 10.0f;
-    private float RotationY = 0.0f;
-    private float RotationX = 0.0f;
-    private Matrix gameWorldRotation;
-
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
     private Texture2D canvas;
+    private Arrow arrow;
 
     // Kinect Manager to process depth and video
     private KinectManager manager = new KinectManager(KinectMode.DEPTH_AND_VIDEO);
@@ -33,6 +27,8 @@ namespace KinectSample {
     public Game1() {
       graphics = new GraphicsDeviceManager(this);
       Content.RootDirectory = "Content";
+      graphics.PreferredBackBufferHeight = 480;
+      graphics.PreferredBackBufferWidth = 640;
     }
 
     protected override void Initialize() {
@@ -45,7 +41,7 @@ namespace KinectSample {
 
     protected override void LoadContent() {
       spriteBatch = new SpriteBatch(GraphicsDevice);
-      arrow = Content.Load<Model>("arrow");
+      arrow = new Arrow(Content.Load<Model>("arrow"));
     }
 
     protected override void UnloadContent() { }
@@ -53,31 +49,7 @@ namespace KinectSample {
     protected override void Update(GameTime gameTime) {
       if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
         this.Exit();
-
       base.Update(gameTime);
-    }
-
-    private void DrawModel(Model m) {
-      Matrix[] transforms = new Matrix[m.Bones.Count];
-      float aspectRatio = graphics.GraphicsDevice.Viewport.AspectRatio;
-      m.CopyAbsoluteBoneTransformsTo(transforms);
-      Matrix projection =
-          Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45.0f),
-          aspectRatio, 1.0f, 10.0f);
-      Matrix view = Matrix.CreateLookAt(new Vector3(0.0f, 2.0f, Zoom),
-          Vector3.Zero, Vector3.Up);
-
-      foreach (ModelMesh mesh in m.Meshes) {
-        foreach (BasicEffect effect in mesh.Effects) {
-          effect.EnableDefaultLighting();
-
-          effect.View = view;
-          effect.Projection = projection;
-          effect.World = transforms[mesh.ParentBone.Index] * Matrix.CreateTranslation(Position);
-          effect.EnableDefaultLighting();
-        }
-        mesh.Draw();
-      }
     }
 
     // Drawing Logic
@@ -88,7 +60,6 @@ namespace KinectSample {
       GraphicsDevice.Textures[0] = null;
 
       
-
       // Begin Drawing
       spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
@@ -110,12 +81,24 @@ namespace KinectSample {
         spriteBatch.Draw(canvas, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
       }
 
-      
-
       // Finish drawing
       spriteBatch.End();
-      DrawModel(arrow);
+
+      Plane plane = manager.CurrentPlane;
+      
+
+      if (plane != null) {
+        Vector3 v = VectorMath.Subtract(plane.getPoint(0, 10), plane.getPoint(0, 0));
+        Vector3 h = VectorMath.Subtract(plane.getPoint(10, 0), plane.getPoint(0, 0));
+
+        
+      }
+      arrow.DrawModel(graphics);
       base.Draw(gameTime);
     }
   }
 }
+
+
+
+

@@ -186,11 +186,12 @@ namespace KinectSample {
         }
       }
 
+      
       ulong squareValue = ulong.MaxValue;
-      int iterations = 100;
+      int iterations = 10;
       int count = 0;
       Random randomGenerator = new Random();
-      Plane plane = null;
+      plane = null;
 
       // We can't build a plane with less than 3 points
       if (lowerSet.Count < 3) {
@@ -220,7 +221,7 @@ namespace KinectSample {
       }
 
       foreach(Vector3 p in allPoints){
-        if (Math.Abs(plane.getDistance(p)) < 5) {
+        if (Math.Abs(plane.getDistance(p)) < 1) {
           depthPlanePoints.Add(p);
         }
       }
@@ -261,7 +262,7 @@ namespace KinectSample {
     }
 
     // Get the depth of a point given its (x, y) coordinate
-    private ushort getDepth(int x, int y) {
+    private int getDepth(int x, int y) {
       return depthData[pointHash(x, y)];
     }
 

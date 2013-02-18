@@ -18,7 +18,7 @@
             <Vertices>
               <PositionIndices>1 0 2 3 4 5 6</PositionIndices>
               <Channels>
-                <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0 0 1 0 0 1 0 0 1 0 0 1 -0.00423826836 0.009633885 0.9999446 -0.00423826836 0.009633885 0.9999446 -0.00423826836 0.009633885 0.9999446</VertexChannel>
+                <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0 0 1 0 0 1 0 0 1 0 0 1 -0.004238268 0.009633884 0.9999446 -0.004238268 0.009633884 0.9999446 -0.004238268 0.009633884 0.9999446</VertexChannel>
                 <VertexChannel Name="Color0" ElementType="Framework:Vector4">1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</VertexChannel>
               </Channels>
             </Vertices>

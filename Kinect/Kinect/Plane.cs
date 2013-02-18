@@ -19,6 +19,12 @@ namespace KinectSample {
       setPlane(v1, v2, p);
     }
 
+    // Get the plane Vector
+    public Vector3 Normal { get { return normal; } }
+
+    // Get the offset
+    public float Offset { get { return d; } }
+
     // Set the plane with Two Vectors v1, v2 and point on plane p
     public void setPlane(Vector3 v1, Vector3 v2, Vector3 p) {
       normal = VectorMath.CrossProduct(v1, v2);
