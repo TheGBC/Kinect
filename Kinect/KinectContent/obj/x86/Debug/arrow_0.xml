@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics" xmlns:Framework="Microsoft.Xna.Framework">
+  <Asset Type="Graphics:NodeContent">
+    <Name>RootNode</Name>
+    <Identity>
+      <SourceFilename>C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\KinectContent\arrow.fbx</SourceFilename>
+      <SourceTool>FbxImporter</SourceTool>
+    </Identity>
+    <Transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</Transform>
+    <Children>
+      <Child Type="Graphics:MeshContent">
+        <Name>Plane</Name>
+        <Transform>1 0 0 0 0 6.123234E-17 -1 0 0 1 6.123234E-17 0 -1 0 0 1</Transform>
+        <Positions>5 -0.26254 0 1 -0.26254 0 5 0.211604 0 1 0.211604 0 -0.889463 -0.008766 0.005204 1.110526 -1.008623 0.023314 1.110512 0.991284 0.004046</Positions>
+        <Geometry>
+          <Batch>
+            <Indices>2 1 0 0 3 2 6 5 4</Indices>
+            <Vertices>
+              <PositionIndices>1 0 2 3 4 5 6</PositionIndices>
+              <Channels>
+                <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0 0 1 0 0 1 0 0 1 0 0 1 -0.00423826836 0.009633885 0.9999446 -0.00423826836 0.009633885 0.9999446 -0.00423826836 0.009633885 0.9999446</VertexChannel>
+                <VertexChannel Name="Color0" ElementType="Framework:Vector4">1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</VertexChannel>
+              </Channels>
+            </Vertices>
+          </Batch>
+        </Geometry>
+      </Child>
+      <Child>
+        <Name>Cube</Name>
+        <Transform>1 0 0 0 0 6.123234E-17 -1 0 0 1 6.123234E-17 0 0 0 0 1</Transform>
+      </Child>
+    </Children>
+  </Asset>
+</XnaContent>

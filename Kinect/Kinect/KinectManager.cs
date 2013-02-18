@@ -185,9 +185,9 @@ namespace KinectSample {
           }
         }
       }
-      
+
       ulong squareValue = ulong.MaxValue;
-      int iterations = 10;
+      int iterations = 100;
       int count = 0;
       Random randomGenerator = new Random();
       Plane plane = null;
