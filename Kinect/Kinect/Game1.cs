@@ -1,3 +1,35 @@
+/**
+ *  *****************************************************
+ *  * How To Successfully Connect your Android Phone to this Program *
+ *  *****************************************************
+ *  
+ *    (1) Make sure you have the following:
+ *        (a) The android debug bridge driver for you phone installed on your computer
+ *        (b) The android debug bridge program "adb", which is installed with the Android SDK
+ *        (c) The PhoneStats (Kinect-Android) app installed on your android device
+ *        
+ *    (2) To make sure that your driver is the correct one, navigate to the platform-tools folder
+ *        in the Android SDK folder (most likely in Program Files (x86)) and run the command with
+ *        your phone plugged into your computer via USB:
+ *        
+ *          adb devices
+ *          
+ *        If a device is listed, then your driver is working properly.
+ * 
+ *    (3) In the same folder, run the command:
+ *        
+ *          adb forward tcp:8080 tcp:8080
+ *          
+ *    (4) Start the PhoneStats app on your phone
+ *    
+ *    (5) Start the Kinect application
+ * 
+ *    (6) The arrow on screen should move according to the phone's orientation, if this isn't
+ *        happening or an exception is thrown (the Kinect app saying connection refused by host)
+ *        try completely stopping the PhoneStats app, unplugging and replugging the phone, and
+ *        going through the entire process again.
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
