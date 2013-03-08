@@ -21,8 +21,13 @@ namespace KinectSample {
     private Texture2D canvas;
     private Arrow arrow;
 
+    private Vector3 r = new Vector3();
+
     // Kinect Manager to process depth and video
     private KinectManager manager = new KinectManager(KinectMode.DEPTH_AND_VIDEO);
+
+    // Communicates with Android
+    private AndroidCommunicator androidBridge = AndroidCommunicator.Instance;
 
     public Game1() {
       graphics = new GraphicsDeviceManager(this);
@@ -59,7 +64,7 @@ namespace KinectSample {
       // Clear the Canvas
       GraphicsDevice.Textures[0] = null;
 
-      
+      /*
       // Begin Drawing
       spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
@@ -83,16 +88,13 @@ namespace KinectSample {
 
       // Finish drawing
       spriteBatch.End();
+      */
 
-      Plane plane = manager.CurrentPlane;
-      
 
-      if (plane != null) {
-        Vector3 v = VectorMath.Subtract(plane.getPoint(0, 10), plane.getPoint(0, 0));
-        Vector3 h = VectorMath.Subtract(plane.getPoint(10, 0), plane.getPoint(0, 0));
+      arrow.RotX = androidBridge.XAngle - (float)(Math.PI / 2);
+      arrow.RotY = androidBridge.YAngle - (float)(Math.PI / 2);
 
-        
-      }
+
       arrow.DrawModel(graphics);
       base.Draw(gameTime);
     }

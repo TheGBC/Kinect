@@ -9,26 +9,37 @@
     <Transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</Transform>
     <Children>
       <Child Type="Graphics:MeshContent">
-        <Name>Plane</Name>
-        <Transform>1 0 0 0 0 6.123234E-17 -1 0 0 1 6.123234E-17 0 -1 0 0 1</Transform>
-        <Positions>5 -0.26254 0 1 -0.26254 0 5 0.211604 0 1 0.211604 0 -0.889463 -0.008766 0.005204 1.110526 -1.008623 0.023314 1.110512 0.991284 0.004046</Positions>
+        <Name>Cube</Name>
+        <Transform>7.54979E-08 0 -1 0 -1 0 -7.54979E-08 0 0 1 0 0 0 0 0 1</Transform>
+        <Positions>1.428572 -0.998681 -0.44912 -4.571429 -0.998682 -0.44912 -4.571428 1.001318 -0.44912 1.428572 1.001318 -0.44912 1.428571 -0.998682 0.55088 -4.571429 -0.998681 0.55088 -4.571428 1.001319 0.55088 1.428571 1.001318 0.55088 1.428571 2.001318 -0.44912 3.428571 0.001319 -0.44912 1.428572 -1.998681 -0.44912 1.428571 2.001318 0.55088 3.428571 0.001319 0.55088 1.428572 -1.998681 0.55088</Positions>
         <Geometry>
           <Batch>
-            <Indices>2 1 0 0 3 2 6 5 4</Indices>
+            <Material>#Resource1</Material>
+            <Indices>2 1 0 0 3 2 6 5 4 4 7 6 7 4 0 0 1 7 6 7 1 1 2 6 5 6 2 2 3 5 3 0 4 4 5 3 10 9 8 8 11 10 13 12 9 9 10 13 11 8 12 12 13 11 13 10 11 8 9 12</Indices>
             <Vertices>
-              <PositionIndices>1 0 2 3 4 5 6</PositionIndices>
+              <PositionIndices>0 1 2 3 4 7 6 5 11 12 9 8 13 10</PositionIndices>
               <Channels>
-                <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0 0 1 0 0 1 0 0 1 0 0 1 -0.004238268 0.009633884 0.9999446 -0.004238268 0.009633884 0.9999446 -0.004238268 0.009633884 0.9999446</VertexChannel>
-                <VertexChannel Name="Color0" ElementType="Framework:Vector4">1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</VertexChannel>
+                <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0.5773492 -0.5773492 -0.5773492 -0.5773492 -0.5773492 -0.5773492 -0.5773492 0.5773492 -0.5773492 0.5773492 0.5773492 -0.5773492 0.5773492 -0.5773492 0.5773492 0.5773492 0.5773492 0.5773492 -0.5773492 0.5773492 0.5773492 -0.5773492 -0.5773492 0.5773492 -0.3203528 0.7734306 0.5468917 0.8164922 0 0.5773492 0.8164922 0 -0.5773492 -0.3203528 0.7734306 -0.5468917 -0.3203528 -0.7734306 0.5468917 -0.3203528 -0.7734306 -0.5468917</VertexChannel>
               </Channels>
             </Vertices>
           </Batch>
         </Geometry>
       </Child>
-      <Child>
-        <Name>Cube</Name>
-        <Transform>1 0 0 0 0 6.123234E-17 -1 0 0 1 6.123234E-17 0 0 0 0 1</Transform>
-      </Child>
     </Children>
   </Asset>
+  <Resources>
+    <Resource ID="#Resource1" Type="Graphics:BasicMaterialContent">
+      <Name>Material</Name>
+      <Identity>
+        <SourceFilename>C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\KinectContent\arrow.fbx</SourceFilename>
+        <SourceTool>FbxImporter</SourceTool>
+      </Identity>
+      <OpaqueData>
+        <Data Key="DiffuseColor" Type="Framework:Vector3">0.640000045 0.640000045 0.640000045</Data>
+        <Data Key="EmissiveColor" Type="Framework:Vector3">0 0 0</Data>
+        <Data Key="Alpha" Type="float">1</Data>
+        <Data Key="SpecularColor" Type="Framework:Vector3">0 0 0</Data>
+      </OpaqueData>
+    </Resource>
+  </Resources>
 </XnaContent>

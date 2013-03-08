@@ -2,40 +2,38 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace Kinect {
   class Arrow {
     private Model arrow;
-    private Vector3 Position = new Vector3(1, -1f, 2);
+    private Vector3 Position = new Vector3(0, 0, 0);
+    private Vector3 Rotation = new Vector3(0, 0, 0);
 
     private float zoom = 15.0f;
-    private float RotationY = 0.0f;
-    private float RotationX = 0.0f;
-    private float RotationZ = (float)(-Math.PI / 2);
 
     private Matrix gameWorldRotation = Matrix.Identity;
 
     public Arrow(Model arrow) {
       this.arrow = arrow;
-      gameWorldRotation = Matrix.CreateRotationX(RotationX)
-        * Matrix.CreateRotationY(RotationY)
-        * Matrix.CreateRotationZ(RotationZ);
+      updateRotation();
     }
 
-    public float RotateX { set { RotationX = value; updateRotation(); } }
-    public float RotateY { set { RotationY = value; updateRotation(); } }
-    public float RotateZ { set { RotationZ = value; updateRotation(); } }
+    public float RotX { set { Rotation.X = value; updateRotation(); } }
+    public float RotY { set { Rotation.Y = value; updateRotation(); } }
+    public float RotZ { set { Rotation.Z = value; updateRotation(); } }
+
     public float PosX { set { Position.X = value; } }
     public float PosY { set { Position.Y = value; } }
     public float PosZ { set { Position.Z = value; } }
     public float Zoom { set { zoom = value; } }
 
     private void updateRotation() {
-      gameWorldRotation = Matrix.CreateRotationX(RotationX)
-        * Matrix.CreateRotationY(RotationY)
-        * Matrix.CreateRotationZ(RotationZ);
+      gameWorldRotation = Matrix.CreateRotationX(Rotation.X)
+          * Matrix.CreateRotationY(Rotation.Y)
+          * Matrix.CreateRotationZ(Rotation.Z);
     }
 
     public void DrawModel(GraphicsDeviceManager graphics) {
@@ -45,7 +43,7 @@ namespace Kinect {
       Matrix projection =
           Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45.0f),
           aspectRatio, 1.0f, 30.0f);
-      Matrix view = Matrix.CreateLookAt(new Vector3(0.0f, 2.0f, zoom),
+      Matrix view = Matrix.CreateLookAt(new Vector3(0, 0.0f, zoom),
           Vector3.Zero, Vector3.Up);
 
       foreach (ModelMesh mesh in arrow.Meshes) {

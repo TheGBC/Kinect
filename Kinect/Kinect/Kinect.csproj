@@ -108,6 +108,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AndroidCommunicator.cs" />
     <Compile Include="Arrow.cs" />
     <Compile Include="KinectManager.cs" />
     <Compile Include="Plane.cs" />
