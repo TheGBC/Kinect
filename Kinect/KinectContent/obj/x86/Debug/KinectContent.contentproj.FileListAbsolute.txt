@@ -1,1 +1,2 @@
 C:\Users\yuhao93\Documents\Visual Studio 2012\Projects\Kinect\Kinect\KinectContent\obj\x86\Debug\KinectContent.contentprojResolveAssemblyReference.cache
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\KinectContent\obj\x86\Debug\KinectContent.contentprojResolveAssemblyReference.cache

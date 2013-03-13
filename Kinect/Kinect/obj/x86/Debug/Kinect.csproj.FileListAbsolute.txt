@@ -5,3 +5,11 @@ C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\Kinect\obj\
 C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.exe
 C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.pdb
 C:\Users\yuhao93\documents\visual studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\arrow.xnb
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\arrow.xnb
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Kinect.exe.config
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Kinect.exe
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Kinect.pdb
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.csprojResolveAssemblyReference.cache
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.exe
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.pdb
