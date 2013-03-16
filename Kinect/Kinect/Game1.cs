@@ -50,10 +50,7 @@ namespace KinectSample {
     // Graphics Device and Objects used to render onscreen
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
-    private Texture2D canvas;
     private Arrow arrow;
-
-    private Vector3 r = new Vector3();
 
     // Kinect Manager to process depth and video
     private KinectManager manager = new KinectManager(KinectMode.DEPTH_AND_VIDEO);
@@ -71,9 +68,8 @@ namespace KinectSample {
     protected override void Initialize() {
       base.Initialize();
 
-      // Start the manager and initialize the canvas
+      // Start the manager
       manager.Start();
-      canvas = new Texture2D(GraphicsDevice, manager.Width, manager.Height);
     }
 
     protected override void LoadContent() {
@@ -93,39 +89,9 @@ namespace KinectSample {
     protected override void Draw(GameTime gameTime) {
       // Clear the screen
       GraphicsDevice.Clear(Color.CornflowerBlue);
-      // Clear the Canvas
-      GraphicsDevice.Textures[0] = null;
-
-      /*
-      // Begin Drawing
-      spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-
-      
-      // Obtain all the "Relevant Points"
-      Vector3[] points = manager.CurrentDepthPlanePoints;
-      // Obtain the video feed
-      uint[] colors = manager.CurrentXnaImageData;
-
-      // If the points are ready to be drawn
-      if (points != null && colors != null) {
-        // Replace the pixels in the video feed that are relevant with the color red
-        for (int i = 0; i < points.Length; i++) {
-          colors[(int)((points[i].Y * manager.Width) + points[i].X)] = 0xFF0000FF;
-        }
-
-        // Set the canvas and draw onto screen
-        canvas.SetData<uint>(colors);
-        spriteBatch.Draw(canvas, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
-      }
-
-      // Finish drawing
-      spriteBatch.End();
-      */
-
 
       arrow.RotX = androidBridge.XAngle - (float)(Math.PI / 2);
       arrow.RotY = androidBridge.YAngle - (float)(Math.PI / 2);
-
 
       arrow.DrawModel(graphics);
       base.Draw(gameTime);

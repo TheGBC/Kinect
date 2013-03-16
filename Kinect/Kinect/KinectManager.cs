@@ -18,12 +18,7 @@ namespace KinectSample {
     // Depth data
     private ushort[] depthData = null;
 
-    // The current plane
-    private Plane plane = null;
-
-    // The points belonging to the current plane
-    private List<Vector2> planePoints = null;
-    private List<Vector3> depthPlanePoints = null;
+    private List<Vector3> depthPoints;
 
     // The current joint positions
     private List<Vector2> jointPoints = null;
@@ -102,23 +97,11 @@ namespace KinectSample {
 
             Monitor.Enter(depthLock);
 
-            if (planePoints != null) {
-              planePoints.Clear();
-            } else {
-              planePoints = new List<Vector2>();
-            }
-
-            if (depthPlanePoints != null) {
-              depthPlanePoints.Clear();
-            } else {
-              depthPlanePoints = new List<Vector3>();
-            }
-
+            depthPoints = new List<Vector3>();
 
             short[] rawData = new short[depthFrame.PixelDataLength];
             depthFrame.CopyPixelDataTo(rawData);
             depthData = formatShortData(rawData);
-
 
             EnhancedAlgorithm();
 
@@ -171,6 +154,7 @@ namespace KinectSample {
           int hashIndex = pointHash(x, getDepth(x, y));
           Vector3 v = new Vector3(x, y, getDepth(x, y));
           allPoints[pointHash(x, y)] = v;
+          depthPoints.Add(v);
 
           // Points with a depth of the max depth can very well be unneccessary noise
           //
@@ -181,84 +165,9 @@ namespace KinectSample {
           } else {
             seenValues.Add(hashIndex);
             lowerSet.Add(v);
-            //depthPlanePoints.Add(v);
           }
         }
       }
-
-      
-      ulong squareValue = ulong.MaxValue;
-      int iterations = 10;
-      int count = 0;
-      Random randomGenerator = new Random();
-      plane = null;
-
-      // We can't build a plane with less than 3 points
-      if (lowerSet.Count < 3) {
-        return;
-      }
-
-      while (count < iterations) {
-        // Get three random points from the lowerSet
-        ulong currentSquares = 0;
-        Vector3[] points = selectRandomPoints(lowerSet, randomGenerator);
-        Vector3 v1 = points[0] - points[1];
-        Vector3 v2 = points[0] - points[2];
-        Vector3 p = points[0];
-        Plane planeCandidate = new Plane(v1, v2, p);
-        foreach (Vector3 point in lowerSet) {
-          double dist = planeCandidate.getDistance(point);
-          currentSquares += (ulong)(dist * dist);
-        }
-
-        if (currentSquares > squareValue) {
-          count++;
-        } else {
-          squareValue = currentSquares;
-          plane = planeCandidate;
-          count = 0;
-        }
-      }
-
-      foreach(Vector3 p in allPoints){
-        if (Math.Abs(plane.getDistance(p)) < 1) {
-          depthPlanePoints.Add(p);
-        }
-      }
-    }
-
-    // Returns three random points selected from the list
-    private Vector3[] selectRandomPoints(List<Vector3> points, Random generator) {
-      Vector3[] randList = new Vector3[3];
-      for (int i = 0; i < 3; i++) {
-        int ind = generator.Next(points.Count - i) + i;
-        randList[i] = points[ind];
-        points[ind] = points[i];
-      }
-      return randList;
-    }
-
-    private Vector3 normalVector(Vector3 point, Vector3 up, Vector3 down, Vector3 left, Vector3 right) {
-      // Get the vectors of all the points
-      Vector3 u = VectorMath.Subtract(point, up);
-      Vector3 d = VectorMath.Subtract(point, down);
-      Vector3 l = VectorMath.Subtract(point, left);
-      Vector3 r = VectorMath.Subtract(point, right);
-
-      // The four normal vectors calculatable from the above
-      Vector3 cpUL = VectorMath.CrossProduct(u, l);
-      Vector3 cpUR = VectorMath.CrossProduct(u, r);
-      Vector3 cpDL = VectorMath.CrossProduct(d, l);
-      Vector3 cpDR = VectorMath.CrossProduct(d, r);
-
-      // Return the average of the four normal vectors
-      return VectorMath.AverageVector(new Vector3[4] { cpUL, cpUR, cpDL, cpDR });
-    }
-
-
-    // Add a point to the set of points belonging to the plane
-    private void addPoint(Vector3 point) {
-      planePoints.Add(new Vector2(point.X, point.Y));
     }
 
     // Get the depth of a point given its (x, y) coordinate
@@ -396,6 +305,21 @@ namespace KinectSample {
       }
     }
 
+    // 3D depth data
+    public Vector3[] CurrentDepthData {
+      get {
+        Vector3[] data = null;
+
+        Monitor.Enter(depthLock);
+        if (depthPoints != null) {
+          depthPoints.CopyTo(data);
+        }
+        Monitor.Exit(depthLock);
+
+        return data;
+      }
+    }
+
     // The current Xna Image
     public uint[] CurrentXnaImageData {
       get {
@@ -406,52 +330,6 @@ namespace KinectSample {
           data = (uint[])XnaImageData.Clone();
         }
         Monitor.Exit(imageLock);
-
-        return data;
-      }
-    }
-
-    public Vector3[] CurrentDepthPlanePoints {
-      get {
-        Vector3[] copyPoints = null;
-
-        Monitor.Enter(depthLock);
-        if (depthPlanePoints != null) {
-          copyPoints = new Vector3[depthPlanePoints.Count];
-          depthPlanePoints.CopyTo(copyPoints);
-        }
-        Monitor.Exit(depthLock);
-
-        return copyPoints;
-      }
-    }
-
-    // The current Set of points belonging to the plane
-    public Vector2[] CurrentPlanePoints {
-      get {
-        Vector2[] copyPoints = null;
-
-        Monitor.Enter(depthLock);
-        if (planePoints != null) {
-          copyPoints = new Vector2[planePoints.Count];
-          planePoints.CopyTo(copyPoints);
-        }
-        Monitor.Exit(depthLock);
-
-        return copyPoints;
-      }
-    }
-
-    // The current plane
-    public Plane CurrentPlane {
-      get {
-        Plane data = null;
-
-        Monitor.Enter(depthLock);
-        if (plane != null) {
-          data = (Plane)plane.Clone();
-        }
-        Monitor.Exit(depthLock);
 
         return data;
       }
