@@ -113,12 +113,13 @@
   <ItemGroup>
     <Compile Include="AndroidCommunicator.cs" />
     <Compile Include="Arrow.cs" />
+    <Compile Include="Cube.cs" />
+    <Compile Include="Handler3D.cs" />
     <Compile Include="KinectManager.cs" />
     <Compile Include="Plane.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Game1.cs" />
-    <Compile Include="VectorMath.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

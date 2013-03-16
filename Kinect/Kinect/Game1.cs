@@ -1,7 +1,7 @@
 /**
- *  *****************************************************
+ *  ******************************************************************
  *  * How To Successfully Connect your Android Phone to this Program *
- *  *****************************************************
+ *  ******************************************************************
  *  
  *    (1) Make sure you have the following:
  *        (a) The android debug bridge driver for you phone installed on your computer
@@ -50,7 +50,13 @@ namespace KinectSample {
     // Graphics Device and Objects used to render onscreen
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
+
+    // 3D stuff
     private Arrow arrow;
+    private Handler3D handler3D = new Handler3D();
+    private List<VertexPositionColor> verts = new List<VertexPositionColor>();
+    private List<Cube> cubes = new List<Cube>();
+
 
     // Kinect Manager to process depth and video
     private KinectManager manager = new KinectManager(KinectMode.DEPTH_AND_VIDEO);
@@ -75,6 +81,17 @@ namespace KinectSample {
     protected override void LoadContent() {
       spriteBatch = new SpriteBatch(GraphicsDevice);
       arrow = new Arrow(Content.Load<Model>("arrow"));
+      handler3D.init(GraphicsDevice, Content.Load<Effect>("effects"));
+
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 0, 0)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 0, 8192)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 480, 0)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 480, 8192)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 0, 0)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 0, 8192)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 480, 0)));
+      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 480, 8192)));
+      
     }
 
     protected override void UnloadContent() { }
@@ -82,6 +99,31 @@ namespace KinectSample {
     protected override void Update(GameTime gameTime) {
       if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
         this.Exit();
+
+      KeyboardState keyboard = Keyboard.GetState();
+
+      // Up and Down zoom in and out
+      if (keyboard.IsKeyDown(Keys.W)) {
+        handler3D.Zoom -= .1f;
+      } else if (keyboard.IsKeyDown(Keys.S)) {
+        handler3D.Zoom += .1f;
+      }
+
+      // Left and Right rotate around
+      if (keyboard.IsKeyDown(Keys.Left)) {
+        handler3D.RotationY += .01f;
+      } else if (keyboard.IsKeyDown(Keys.Right)) {
+        handler3D.RotationY -= .01f;
+      }
+
+      // Top and Bottom rotate around
+      if (keyboard.IsKeyDown(Keys.Up)) {
+        handler3D.RotationX += .01f;
+      } else if (keyboard.IsKeyDown(Keys.Down)) {
+        handler3D.RotationX -= .01f;
+      }
+
+      handler3D.SetUpCamera();
       base.Update(gameTime);
     }
 
@@ -90,10 +132,24 @@ namespace KinectSample {
       // Clear the screen
       GraphicsDevice.Clear(Color.CornflowerBlue);
 
+      foreach (Cube cube in cubes) {
+        verts.AddRange(cube.Points);
+      }
+
+      GraphicsDevice.DrawUserPrimitives(
+          PrimitiveType.TriangleList,
+          verts.ToArray(),
+          0,
+          verts.Count / 3,
+          VertexPositionColor.VertexDeclaration);
+
+
+      /*
       arrow.RotX = androidBridge.XAngle - (float)(Math.PI / 2);
       arrow.RotY = androidBridge.YAngle - (float)(Math.PI / 2);
 
       arrow.DrawModel(graphics);
+      */
       base.Draw(gameTime);
     }
   }

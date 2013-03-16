@@ -27,14 +27,14 @@ namespace KinectSample {
 
     // Set the plane with Two Vectors v1, v2 and point on plane p
     public void setPlane(Vector3 v1, Vector3 v2, Vector3 p) {
-      normal = VectorMath.CrossProduct(v1, v2);
+      normal = Vector3.Cross(v1, v2);
       d = -((normal.X * p.X) + (normal.Y * p.Y) + (normal.Z * p.Z));
     }
 
     // Get the distance of point v from the plane
     public double getDistance(Vector3 v) {
-      return Math.Abs(((normal.X * v.X) + (normal.Y * v.Y) + (normal.Z * v.Z) + d))
-        / VectorMath.Magnitude(normal);
+      return Math.Abs(((normal.X * v.X) + (normal.Y * v.Y) + (normal.Z * v.Z) + d)
+        / Vector3.Distance(normal, Vector3.Zero));
     }
 
     // Get the point with x and y coordinates (finds the z)
