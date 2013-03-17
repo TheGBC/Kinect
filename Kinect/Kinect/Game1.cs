@@ -51,6 +51,8 @@ namespace KinectSample {
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
 
+    private long millis = 0;
+
     // 4 batches should be good enough, smallest is 3 because each triangle
     // needs to be drawn in the same batch
     private BatchHandler<VertexPositionColor> batchHandler = 
@@ -107,6 +109,17 @@ namespace KinectSample {
 
       KeyboardState keyboard = Keyboard.GetState();
 
+      millis += (long)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+      if (millis > 30) {
+        millis = 0;
+        handler3D.RotationY = androidBridge.XAngle - (float)(Math.PI / 2);
+        handler3D.RotationX = androidBridge.YAngle - (float)(Math.PI / 2);
+      }
+
+
+      
+
       // Up and Down zoom in and out
       if (keyboard.IsKeyDown(Keys.W)) {
         handler3D.Zoom -= .1f;
@@ -133,8 +146,9 @@ namespace KinectSample {
     }
 
     // point is a 3d point to be rotated around unit vector axis by angle
-    // Pass in the dot of point and axis, cos of angle, and sin of angle to save processing time
-    private Vector3 transformPoint(Vector3 point, Vector3 axis, float dot, float cos, float sin) {
+    // Pass in the cos of angle and sin of angle to save processing time
+    private Vector3 transformPoint(Vector3 point, Vector3 axis, float cos, float sin) {
+      float dot = Vector3.Dot(point, axis);
       float u = axis.X;
       float v = axis.Y;
       float w = axis.Z;
@@ -143,9 +157,9 @@ namespace KinectSample {
       float z = point.Z;
 
       return new Vector3(
-          u * dot * (1 - cos) + (point.X * cos) + ((-w * y) + (v * z)) * sin,
-          v * dot * (1 - cos) + (point.Y * cos) + ((w * x) + (u * z)) * sin,
-          w * dot * (1 - cos) + (point.Z * cos) + ((-v * x) + (u * y)) * sin
+          (u * dot * (1 - cos)) + (point.X * cos) + (((-w * y) + (v * z)) * sin),
+          (v * dot * (1 - cos)) + (point.Y * cos) + (((w * x) + (u * z)) * sin),
+          (w * dot * (1 - cos)) + (point.Z * cos) + (((-v * x) + (u * y)) * sin)
       );
     }
 

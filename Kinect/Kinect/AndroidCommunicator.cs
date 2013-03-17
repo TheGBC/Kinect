@@ -22,22 +22,57 @@ namespace Kinect {
       }
     }
 
+    // Cross Product of phone normal and the up vector
+    public Vector3 RotationAxis {
+      get {
+        Vector3 norm = Normal;
+        if (norm.Equals(Vector3.Zero)) {
+          return Vector3.Zero;
+        }
+        Vector3 up = Vector3.Up;
+
+        Vector3 axis = Vector3.Cross(up, norm);
+        axis.Normalize();
+        return axis;
+      }
+    }
+
+    // Angle between the phone normal and the up vector
+    public float RotationAngle {
+      get {
+        Vector3 norm = Normal;
+        if (norm.Equals(Vector3.Zero)) {
+          return 0;
+        }
+        Vector3 up = Vector3.Up;
+
+        return (float)Math.Acos(Vector3.Dot(norm, up) / (Vector3.Distance(norm, Vector3.Zero)));
+      }
+    }
+
     public float XAngle {
       get {
-        string res = Orientation;
-        if (res.Length > 0) {
-          string[] parts = res.Split(':');
-          Vector3 norm = new Vector3(
-              float.Parse(parts[0]), 
-              float.Parse(parts[1]), 
-              float.Parse(parts[2]));
-          return (float)Math.Atan2(norm.Z, norm.X);
+        Vector3 norm = Normal;
+        if (norm.Equals(Vector3.Zero)) {
+          return 0;
         }
-        return 0;
+
+        return (float)Math.Atan2(norm.Z, norm.X);
       }
     }
 
     public float YAngle {
+      get {
+        Vector3 norm = Normal;
+        if (norm.Equals(Vector3.Zero)) {
+          return 0;
+        }
+
+        return (float)Math.Atan2(norm.Z, norm.Y);
+      }
+    }
+
+    private Vector3 Normal {
       get {
         string res = Orientation;
         if (res.Length > 0) {
@@ -46,9 +81,9 @@ namespace Kinect {
               float.Parse(parts[0]),
               float.Parse(parts[1]),
               float.Parse(parts[2]));
-          return (float)Math.Atan2(norm.Z, norm.Y);
+          return norm;
         }
-        return 0;
+        return Vector3.Zero;
       }
     }
 
@@ -78,15 +113,17 @@ namespace Kinect {
         IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8080);
         client.Connect(serverEndPoint);
         NetworkStream clientStream = client.GetStream();
+        string str = "";
 
-        using (StreamWriter writer = new StreamWriter(clientStream, Encoding.UTF8)) {
-          writer.AutoFlush = true;
-          writer.WriteLine("get-location");
-        }
+        StreamWriter writer = new StreamWriter(clientStream, Encoding.UTF8);
+        writer.Write("get-location" + '\n');
+        writer.Flush();
 
-        using (StreamReader reader = new StreamReader(clientStream, Encoding.UTF8)) {
-          return reader.ReadLine();
-        }
+        StreamReader reader = new StreamReader(clientStream, Encoding.UTF8);
+        str = reader.ReadLine();
+        reader.Close();
+        client.Close();
+        return str;
       }
     }
   }

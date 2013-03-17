@@ -50,7 +50,7 @@ namespace Kinect {
     public void SetUpCamera() {
       viewMatrix = Matrix.CreateLookAt(new Vector3(0, 0, Zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
       projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 1.0f, 1000.0f);
-      rotationMatrix = Matrix.CreateRotationY(3 * RotationY) * Matrix.CreateRotationX(3 * RotationX);
+      rotationMatrix = Matrix.CreateRotationY(RotationY) * Matrix.CreateRotationX(RotationX);
 
       effect.Parameters["xView"].SetValue(viewMatrix);
       effect.Parameters["xProjection"].SetValue(projectionMatrix);
