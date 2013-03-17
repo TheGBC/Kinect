@@ -51,6 +51,11 @@ namespace KinectSample {
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
 
+    // 4 batches should be good enough, smallest is 3 because each triangle
+    // needs to be drawn in the same batch
+    private BatchHandler<VertexPositionColor> batchHandler = 
+        new BatchHandler<VertexPositionColor>(4, 3);
+
     // 3D stuff
     private Arrow arrow;
     private Handler3D handler3D = new Handler3D();
@@ -127,22 +132,43 @@ namespace KinectSample {
       base.Update(gameTime);
     }
 
+    // point is a 3d point to be rotated around unit vector axis by angle
+    // Pass in the dot of point and axis, cos of angle, and sin of angle to save processing time
+    private Vector3 transformPoint(Vector3 point, Vector3 axis, float dot, float cos, float sin) {
+      float u = axis.X;
+      float v = axis.Y;
+      float w = axis.Z;
+      float x = point.X;
+      float y = point.Y;
+      float z = point.Z;
+
+      return new Vector3(
+          u * dot * (1 - cos) + (point.X * cos) + ((-w * y) + (v * z)) * sin,
+          v * dot * (1 - cos) + (point.Y * cos) + ((w * x) + (u * z)) * sin,
+          w * dot * (1 - cos) + (point.Z * cos) + ((-v * x) + (u * y)) * sin
+      );
+    }
+
     // Drawing Logic
     protected override void Draw(GameTime gameTime) {
       // Clear the screen
       GraphicsDevice.Clear(Color.CornflowerBlue);
 
+      // Get cubes
       foreach (Cube cube in cubes) {
         verts.AddRange(cube.Points);
       }
 
-      GraphicsDevice.DrawUserPrimitives(
+      // Split up into different batches, draw
+      List<VertexPositionColor>[] arr = batchHandler.handleBatches(verts);
+      foreach (List<VertexPositionColor> batch in arr) {
+        GraphicsDevice.DrawUserPrimitives(
           PrimitiveType.TriangleList,
-          verts.ToArray(),
+          batch.ToArray(),
           0,
-          verts.Count / 3,
+          batch.Count / 3,
           VertexPositionColor.VertexDeclaration);
-
+      }
 
       /*
       arrow.RotX = androidBridge.XAngle - (float)(Math.PI / 2);

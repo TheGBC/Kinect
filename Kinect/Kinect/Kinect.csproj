@@ -113,6 +113,7 @@
   <ItemGroup>
     <Compile Include="AndroidCommunicator.cs" />
     <Compile Include="Arrow.cs" />
+    <Compile Include="BatchHandler.cs" />
     <Compile Include="Cube.cs" />
     <Compile Include="Handler3D.cs" />
     <Compile Include="KinectManager.cs" />
