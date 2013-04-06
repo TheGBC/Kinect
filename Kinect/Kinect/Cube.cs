@@ -1,7 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.Kinect;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,30 +14,22 @@ namespace Kinect {
    * Cube object to be rendered
    */
   class Cube {
-
     // Keeps track of the 8 cube corners
     private Vector3[] verts = new Vector3[8];
 
     // Indices to draw the 12 triangles
     private VertexPositionColor[] points = new VertexPositionColor[36];
 
-    // Max Width, Height, and Depth of the input
-    private float width;
-    private float height;
-    private float depth;
-
     // Color generated from the depth
-    private Color color;
-
-    // Construct an empty cube
-    public Cube(float width, float height, float depth) {
-      this.width = width;
-      this.height = height;
-      this.depth = depth;
-    }
+    private Color color = Color.Black;
 
     // Construct a cube at center
-    public Cube(float width, float height, float depth, Vector3 center) : this(width, height, depth){
+    public Cube(SkeletonPoint center) {
+      init(center);
+    }
+
+    public Cube(SkeletonPoint center, Color color){
+      this.color = color;
       init(center);
     }
 
@@ -47,25 +41,21 @@ namespace Kinect {
     }
 
     // Generate the cube given the center
-    public void init(Vector3 center) {
+    public void init(SkeletonPoint center) {
 
-      // Get color
-      this.color = getColorFromDepth((center.Z / depth) - .5f);
-
-      // Get depth
-      float x_off = .01f * width;
-      float y_off = .01f * height;
-      float z_off = .01f * depth;
+      float x_off = .005f;
+      float y_off = .005f;
+      float z_off = .005f;
 
       // Get Corners
-      verts[0] = transformVector(new Vector3(center.X - x_off, center.Y - y_off, center.Z + z_off));
-      verts[1] = transformVector(new Vector3(center.X + x_off, center.Y - y_off, center.Z + z_off));
-      verts[2] = transformVector(new Vector3(center.X - x_off, center.Y + y_off, center.Z + z_off));
-      verts[3] = transformVector(new Vector3(center.X + x_off, center.Y + y_off, center.Z + z_off));
-      verts[4] = transformVector(new Vector3(center.X - x_off, center.Y - y_off, center.Z - z_off));
-      verts[5] = transformVector(new Vector3(center.X + x_off, center.Y - y_off, center.Z - z_off));
-      verts[6] = transformVector(new Vector3(center.X - x_off, center.Y + y_off, center.Z - z_off));
-      verts[7] = transformVector(new Vector3(center.X + x_off, center.Y + y_off, center.Z - z_off));
+      verts[0] = new Vector3(center.X + x_off, center.Y + y_off, center.Z - z_off);
+      verts[1] = new Vector3(center.X - x_off, center.Y + y_off, center.Z - z_off);
+      verts[2] = new Vector3(center.X + x_off, center.Y - y_off, center.Z - z_off);
+      verts[3] = new Vector3(center.X - x_off, center.Y - y_off, center.Z - z_off);
+      verts[4] = new Vector3(center.X + x_off, center.Y + y_off, center.Z + z_off);
+      verts[5] = new Vector3(center.X - x_off, center.Y + y_off, center.Z + z_off);
+      verts[6] = new Vector3(center.X + x_off, center.Y - y_off, center.Z + z_off);
+      verts[7] = new Vector3(center.X - x_off, center.Y - y_off, center.Z + z_off);
 
       // Get Indices
       points = indexToVertices(new Vector3[] {
@@ -99,18 +89,6 @@ namespace Kinect {
       }
 
       return arr;
-    }
-
-    // Generates the color based on depth
-    // Assume depth is between -.5f and .5f
-    private Color getColorFromDepth(float depth) {
-      depth += depth + .5f;
-      return new Color(depth, depth, depth);
-    }
-
-    // Normalizes a cooridnate to be in between -.5 and .5
-    private Vector3 transformVector(Vector3 inVector) {
-      return new Vector3((inVector.X / width) - .5f, (inVector.Y / height) - .5f, (inVector.Z / depth) - .5f);
     }
   }
 }

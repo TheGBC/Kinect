@@ -3,53 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Kinect;
-using Microsoft.Xna.Framework;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.Xna.Framework;
 
 namespace KinectSample {
   class KinectManager {
-    private KinectMode mode;
     private KinectSensor sensor = null;
 
-    // Xna Image
-    private uint[] XnaImageData = null;
+    private bool frameReady = true;
+    private object frameLock = new object();
 
-    // Depth data
-    private ushort[] depthData = null;
-
-    private List<Vector3> depthPoints;
-
-    // The current joint positions
-    private List<Vector2> jointPoints = null;
-
-    // The current joints
-    private List<Joint> joints = null;
-
-
-    // Locks to ensure that
-    //   a. The asynchronous methods do not pile up
-    //   b. Other resources can not access data that is in the middle of
-    //        being processed
-    private bool colorUpdateReady = true;
-    private bool depthUpdateReady = true;
-    private bool skeletonUpdateReady = true;
-
-    private object imageLock = new object();
-    private object depthLock = new object();
-    private object skeletonLock = new object();
-
-
-    // Constants
     private readonly int WIDTH = 640;
     private readonly int HEIGHT = 480;
-    private readonly int MAX_DEPTH = 8191;
 
+    private List<Coordinate> points = null;
 
-    public KinectManager(KinectMode mode) {
-      this.mode = mode;
+    private readonly DepthImageFormat DEPTH_FORMAT = DepthImageFormat.Resolution320x240Fps30;
+    private readonly ColorImageFormat COLOR_FORMAT = ColorImageFormat.RgbResolution640x480Fps30;
 
-      // Get at least one kinect sensor
+    private readonly int MIN_PLANE_MEMBERS = 1000;
+    private readonly int MAX_ITERATION = 300;
+
+    public KinectManager() {
       foreach (KinectSensor potentialSensor in KinectSensor.KinectSensors) {
         if (potentialSensor.Status == KinectStatus.Connected) {
           sensor = potentialSensor;
@@ -57,364 +33,208 @@ namespace KinectSample {
         }
       }
 
-      if (sensor != null) {
-        // Enable Depth
-        if (DepthEnabled) {
-          sensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
-          sensor.DepthFrameReady += OnDepthFrameReady;
-        }
-
-        // Enable Video
-        if (VideoEnabled) {
-          sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
-          sensor.ColorFrameReady += OnColorFrameReady;
-        }
-
-        // Enable Skeleton
-        if (SkeletonEnabled) {
-          sensor.SkeletonStream.Enable();
-          sensor.SkeletonFrameReady += OnSkeletonFrameReady;
-        }
+      if (sensor == null) {
+        return;
       }
+
+      sensor.DepthStream.Enable(DEPTH_FORMAT);
+      sensor.ColorStream.Enable(COLOR_FORMAT);
+
+      sensor.AllFramesReady += onFrameReady;
     }
 
-    // Start the sensor
+    /// <summary>
+    /// Start the sensor measurements
+    /// </summary>
     public void Start() {
-      if (sensor != null && !IsRunning) {
-        sensor.Start();
-      }
+      sensor.Start();
     }
 
-    // When a depth frame is ready
-    private void OnDepthFrameReady(object sender, DepthImageFrameReadyEventArgs e) {
-      if (depthUpdateReady) {
-        using (DepthImageFrame depthFrame = e.OpenDepthImageFrame()) {
-
-          if (depthFrame != null) {
-
-            // Drop updates if they start to pile up
-            depthUpdateReady = false;
-
-            Monitor.Enter(depthLock);
-
-            depthPoints = new List<Vector3>();
-
-            short[] rawData = new short[depthFrame.PixelDataLength];
-            depthFrame.CopyPixelDataTo(rawData);
-            depthData = formatShortData(rawData);
-
-            EnhancedAlgorithm();
-
-            depthUpdateReady = true;
-
-            Monitor.Exit(depthLock);
-          }
-        }
-      }
-    }
-
-    // Return a unique hash number given a coordinate pair
-    private int pointHash(int x, int y) {
-      return y * WIDTH + x;
-    }
-
-    //
-    // This is assuming that the ground will be, for the most part, down
-    //   Thus, points closer to the bottom will be more likely to be part of the ground plane than
-    //   those above it. Thus, this algorithm will detect an incorrect plane if the kinect is tilted
-    //   to such a degree where the ground is almost not visible or not the lowest plane (If the kinect
-    //   is upside down, for example)
-    //
-    // Consider the 3d axis system the point cloud exists in.
-    //   x and y can be thought of as independent and z dependent, such that
-    //   the function for depth is f(x, y).
-    //   This makes sense because for a unique pair (x, y), there is only one value z
-    //
-    //   Instead, let's think about y as a function of x and z
-    //     x and z should only map to one y, but this will not always be the case
-    //     If we are only interested in the bottom y values (those that are most likely ground),
-    //     we won't have to consider coordinates above it.
-    //     Therefore, we can have x and z map to the highest (lowest altitude) y values
-    //
-    // We'll keep track of which x z combinations we have by hashing
-    //   each coordinate pair to the unique integer hash number (z * MAX_X_VALUE) + x.
-    //
-    // If accessing the set is constant time, then finding the ground points will run in O(n)
-    //   for n points sorted with respect to y. 
-    private void EnhancedAlgorithm() {
-      HashSet<int> seenValues = new HashSet<int>();
-
-      // List of all the points
-      Vector3[] allPoints = new Vector3[WIDTH * HEIGHT];
-      List<Vector3> lowerSet = new List<Vector3>();
-
-      // Start from the bottom up, selecting the points most likely on the ground
-      for (int y = HEIGHT - 1; y >= 0; y--) {
-        for (int x = 0; x < WIDTH; x++) {
-          int hashIndex = pointHash(x, getDepth(x, y));
-          Vector3 v = new Vector3(x, y, getDepth(x, y));
-          allPoints[pointHash(x, y)] = v;
-          depthPoints.Add(v);
-
-          // Points with a depth of the max depth can very well be unneccessary noise
-          //
-          // If we've encountered an (x, z) pair that maps to a higher (lower altitude) y, we
-          //   can ignore it.
-          if (seenValues.Contains(hashIndex) || getDepth(x, y) == MAX_DEPTH) {
-            continue;
-          } else {
-            seenValues.Add(hashIndex);
-            lowerSet.Add(v);
-          }
-        }
-      }
-    }
-
-    // Get the depth of a point given its (x, y) coordinate
-    private int getDepth(int x, int y) {
-      return depthData[pointHash(x, y)];
-    }
-
-    // Get the 3D Vector with first two components x and y
-    private Vector3 getVector(int x, int y) {
-      return new Vector3(x, y, getDepth(x, y));
-    }
-
-    // Format the raw data to
-    //   a. Mirror the feed horizontally
-    //   b. Mask the bottom 3 bits to get the raw millimeter distance
-    private ushort[] formatShortData(short[] raw) {
-      ushort[] shorts = new ushort[raw.Length];
-      for (int i = 0; i < raw.Length; i++) {
-        int x = i % WIDTH;
-        int rest = i - x;
-        shorts[rest + (WIDTH - x - 1)] = (ushort)(((ushort)raw[i]) >> 3);
-      }
-      return shorts;
-    }
-
-    // When a video frame is ready
-    private void OnColorFrameReady(object sender, ColorImageFrameReadyEventArgs e) {
-      if (colorUpdateReady) {
-        using (ColorImageFrame imageFrame = e.OpenColorImageFrame()) {
-          if (imageFrame != null) {
-            // Drop updates if they start to pile up
-            colorUpdateReady = false;
-
-            Monitor.Enter(imageLock);
-
-            byte[] imageData = new byte[imageFrame.PixelDataLength];
-            imageFrame.CopyPixelDataTo(imageData);
-
-            XnaImageData = new uint[imageData.Length / 4];
-            for (int i = 0; i < XnaImageData.Length; i++) {
-              int x = i % WIDTH;
-              int rest = i - x;
-
-              byte r = imageData[(i * 4)];
-              byte g = imageData[(i * 4) + 1];
-              byte b = imageData[(i * 4) + 2];
-
-              uint col = 0xFF;
-              col = (col << 8) + r;
-              col = (col << 8) + g;
-              col = (col << 8) + b;
-
-              XnaImageData[rest + (WIDTH - x - 1)] = col;
-            }
-
-            colorUpdateReady = true;
-
-            Monitor.Exit(imageLock);
-          }
-        }
-      }
-    }
-
-
-
-    // When a skeleton frame is ready
-    public void OnSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e) {
-      if (skeletonUpdateReady) {
-        using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame()) {
-          if (skeletonFrame != null) {
-            skeletonUpdateReady = false;
-            Monitor.Enter(skeletonLock);
-
-            if (jointPoints != null) {
-              jointPoints.Clear();
-            } else {
-              jointPoints = new List<Vector2>();
-            }
-
-            if (joints != null) {
-              joints.Clear();
-            } else {
-              joints = new List<Joint>();
-            }
-
-            Skeleton[] data = new Skeleton[skeletonFrame.SkeletonArrayLength];
-            skeletonFrame.CopySkeletonDataTo(data);
-
-            Skeleton skeleton = null;
-            if (data != null) {
-              foreach (Skeleton skel in data) {
-                if (skel.TrackingState == SkeletonTrackingState.Tracked) {
-                  skeleton = skel;
-                }
-              }
-            }
-
-            if (skeleton != null) {
-              CoordinateMapper mapper = new CoordinateMapper(sensor);
-              foreach (Joint j in skeleton.Joints) {
-                DepthImagePoint pt = mapper.MapSkeletonPointToDepthPoint(j.Position, DepthImageFormat.Resolution640x480Fps30);
-                joints.Add(j);
-                addSquare(pt.X, pt.Y);
-              }
-            }
-            skeletonUpdateReady = true;
-
-            Monitor.Exit(skeletonLock);
-          }
-        }
-      }
-    }
-
-    // Add a 5 x 5 square centered on (x, y)
-    private void addSquare(int x, int y) {
-      for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-          tryAdd(x - 2 + i, y - 2 + j);
-        }
-      }
-    }
-
-    // If an (x, y) pair is valid, add it to the joint positions list
-    private void tryAdd(int x, int y) {
-      x = (WIDTH - x - 1);
-      if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-        jointPoints.Add(new Vector2(x, y));
-      }
-    }
-
-    // If the sensor is running
+    /// <summary>
+    /// If the sensor is running
+    /// </summary>
     public bool IsRunning {
       get {
         return sensor != null && sensor.IsRunning;
       }
     }
 
-    // 3D depth data
-    public Vector3[] CurrentDepthData {
-      get {
-        Vector3[] data = null;
-
-        Monitor.Enter(depthLock);
-        if (depthPoints != null) {
-          depthPoints.CopyTo(data);
-        }
-        Monitor.Exit(depthLock);
-
-        return data;
-      }
-    }
-
-    // The current Xna Image
-    public uint[] CurrentXnaImageData {
-      get {
-        uint[] data = null;
-
-        Monitor.Enter(imageLock);
-        if (XnaImageData != null) {
-          data = (uint[])XnaImageData.Clone();
-        }
-        Monitor.Exit(imageLock);
-
-        return data;
-      }
-    }
-
-    // The current positions of the joints
-    public Vector2[] CurrentJointPoints {
-      get {
-        Vector2[] copyPoints = null;
-
-        Monitor.Enter(skeletonLock);
-        if (jointPoints != null) {
-          copyPoints = new Vector2[jointPoints.Count];
-          jointPoints.CopyTo(copyPoints, 0);
-        }
-        Monitor.Exit(skeletonLock);
-
-        return copyPoints;
-      }
-    }
-
-    // The current joints
-    public Joint[] CurrentJoints {
-      get {
-        Joint[] copyJoints = null;
-
-        Monitor.Enter(skeletonLock);
-        if (joints == null) {
-          copyJoints = new Joint[joints.Count];
-          joints.CopyTo(copyJoints, 0);
-        }
-        Monitor.Exit(skeletonLock);
-
-        return copyJoints;
-      }
-    }
-
-    // The width of the feed
+    /// <summary>
+    /// Width of Feed
+    /// </summary>
     public int Width {
       get {
         return WIDTH;
       }
     }
 
-    // The height of the feed
+    /// <summary>
+    /// Height of Feed
+    /// </summary>
     public int Height {
       get {
         return HEIGHT;
       }
     }
 
-    // If the depth is enabled
-    public bool DepthEnabled {
+    /// <summary>
+    /// The Current Frame
+    /// </summary>
+    public Coordinate[] Frame {
       get {
-        return mode == KinectMode.ALL || mode == KinectMode.DEPTH
-          || mode == KinectMode.DEPTH_AND_SKELETON || mode == KinectMode.DEPTH_AND_VIDEO;
+        Coordinate[] res = null;
+        Monitor.Enter(frameLock);
+
+        if (points != null) {
+          res = new Coordinate[points.Count];
+          points.CopyTo(res, 0);
+        }
+
+        Monitor.Exit(frameLock);
+        return res;
       }
     }
 
-    // If the video is enabled
-    public bool VideoEnabled {
-      get {
-        return mode == KinectMode.ALL || mode == KinectMode.VIDEO
-          || mode == KinectMode.VIDEO_AND_SKELETON || mode == KinectMode.DEPTH_AND_VIDEO;
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="coordinates"></param>
+    /// <returns></returns>
+    public Plane RANSAC(Coordinate[] coordinates) {
+      Random r = new Random();
+      Coordinate target = coordinates[r.Next(coordinates.Length)];
+      coordinates[r.Next(coordinates.Length)] = coordinates[0];
+      coordinates[0] = target;
+      return RANSAC(target, coordinates);
+    }
+
+    /// <summary>
+    /// Runs the RANSAC plane detection algorithm on the coordinates give
+    /// </summary>
+    /// <param name="coordinates">coordinates to run RANSAC on</param>
+    /// <returns>A plane that fits at least 100 points in the list</returns>
+    public Plane RANSAC(Coordinate target, Coordinate[] coordinates) {
+      Plane plane = null;
+
+      int planeCnt = 0;
+      int iteration = 0;
+
+      while (planeCnt < MIN_PLANE_MEMBERS && ++iteration < MAX_ITERATION) {
+        SkeletonPoint targetSkeleton = target.point;
+        Vector3[] points = new Vector3[3];
+        points[0] = new Vector3(targetSkeleton.X, targetSkeleton.Y, targetSkeleton.Z);
+
+        Random rand = new Random();
+
+        for (int i = 1; i < 3; i++) {
+          int randInd = rand.Next(coordinates.Length - i) + i;
+          Coordinate coord = coordinates[randInd];
+
+          points[i] = new Vector3(coord.point.X, coord.point.Y, coord.point.Z);
+
+          coordinates[randInd] = coordinates[i];
+          coordinates[i] = coord;
+        }
+
+        Vector3 v1 = Vector3.Subtract(points[0], points[1]);
+        Vector3 v2 = Vector3.Subtract(points[0], points[2]);
+        Plane nextPlane = new Plane(v1, v2, points[0]);
+
+
+        int cnt = 0;
+        foreach (Coordinate c in coordinates) {
+          Vector3 v = new Vector3(c.point.X, c.point.Y, c.point.Z);
+          if (nextPlane.getDistance(v) < .001) {
+            cnt++;
+          }
+        }
+
+        if (cnt > planeCnt) {
+          planeCnt = cnt;
+          plane = nextPlane;
+        }
+
+      }
+
+      return plane;
+    }
+
+    // When both color and depth frames are ready
+    private void onFrameReady(object sender, AllFramesReadyEventArgs e) {
+
+      // Only get the frames when we're done processing the previous one, to prevent
+      // frame callbacks from piling up
+      if (frameReady) {
+
+        // Enter a context with both the depth and color frames
+        using (DepthImageFrame depthFrame = e.OpenDepthImageFrame()) 
+        using (ColorImageFrame colorFrame = e.OpenColorImageFrame()){
+
+          // Lock resources and prevent further frame callbacks
+          frameReady = false;
+          Monitor.Enter(frameLock);
+
+          // Init
+          CoordinateMapper mapper = new CoordinateMapper(sensor);
+          DepthImagePixel[] depthPixels = new DepthImagePixel[depthFrame.PixelDataLength];
+          SkeletonPoint[] realPoints = new SkeletonPoint[depthFrame.PixelDataLength];
+          byte[] colorData = new byte[colorFrame.PixelDataLength];
+
+          // Clear the coordinates from the previous frame
+          if (points != null) {
+            points.Clear();
+          } else {
+            points = new List<Coordinate>();
+          }
+
+          // Obtain raw data from frames
+          depthFrame.CopyDepthImagePixelDataTo(depthPixels);
+          colorFrame.CopyPixelDataTo(colorData);
+
+          // Map depth to real world skeleton points
+          mapper.MapDepthFrameToSkeletonFrame(DEPTH_FORMAT, depthPixels, realPoints);
+
+          // Select the points that are within range and add them to coordinates
+          for (int i = 0; i < realPoints.Length; i++) {
+            if (depthPixels[i].Depth >= depthFrame.MaxDepth
+                || depthPixels[i].Depth <= depthFrame.MinDepth) {
+                  continue;
+            }
+
+            Coordinate coord = new Coordinate();
+            ColorImagePoint colorPoint = 
+                mapper.MapSkeletonPointToColorPoint(realPoints[i], COLOR_FORMAT);
+
+            coord.point = realPoints[i];
+            coord.color = ColorFromColorPoint(colorPoint, colorData);
+            points.Add(coord);
+          }
+
+          // Release resources, now ready for next callback
+          Monitor.Exit(frameLock);
+          frameReady = true;
+        }
       }
     }
 
-    // If the skeleton is enabled
-    public bool SkeletonEnabled {
-      get {
-        return mode == KinectMode.ALL || mode == KinectMode.SKELETON
-          || mode == KinectMode.VIDEO_AND_SKELETON || mode == KinectMode.DEPTH_AND_SKELETON;
+    // Get the color from a ColorImagePoint and the color data
+    private Color ColorFromColorPoint(ColorImagePoint point, byte[] data){
+      if (point.X < 0 || point.X >= WIDTH || point.Y < 0 || point.Y >= HEIGHT) {
+        return Color.Purple;
       }
+
+      int ind = (point.Y * WIDTH + point.X) * 4;
+
+      byte r = data[ind];
+      byte g = data[ind + 1];
+      byte b = data[ind + 2];
+
+      return new Color(r, g, b);
     }
-  }
 
-  class ReturnTypeNotEnabledException { }
-
-  enum KinectMode {
-    VIDEO,
-    DEPTH,
-    SKELETON,
-    DEPTH_AND_VIDEO,
-    DEPTH_AND_SKELETON,
-    VIDEO_AND_SKELETON,
-    ALL
+    public struct Coordinate {
+      public SkeletonPoint point;
+      public Color color;
+    }
   }
 }

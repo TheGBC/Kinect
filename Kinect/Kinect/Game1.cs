@@ -64,9 +64,8 @@ namespace KinectSample {
     private List<VertexPositionColor> verts = new List<VertexPositionColor>();
     private List<Cube> cubes = new List<Cube>();
 
-
     // Kinect Manager to process depth and video
-    private KinectManager manager = new KinectManager(KinectMode.DEPTH_AND_VIDEO);
+    private KinectManager manager = new KinectManager();
 
     // Communicates with Android
     private AndroidCommunicator androidBridge = AndroidCommunicator.Instance;
@@ -89,15 +88,6 @@ namespace KinectSample {
       spriteBatch = new SpriteBatch(GraphicsDevice);
       arrow = new Arrow(Content.Load<Model>("arrow"));
       handler3D.init(GraphicsDevice, Content.Load<Effect>("effects"));
-
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 0, 0)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 0, 8192)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 480, 0)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(0, 480, 8192)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 0, 0)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 0, 8192)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 480, 0)));
-      cubes.Add(new Cube(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, 8192, new Vector3(640, 480, 8192)));
       
     }
 
@@ -111,20 +101,11 @@ namespace KinectSample {
 
       millis += (long)gameTime.ElapsedGameTime.TotalMilliseconds;
 
-      if (millis > 30) {
-        millis = 0;
-        handler3D.RotationY = androidBridge.XAngle - (float)(Math.PI / 2);
-        handler3D.RotationX = androidBridge.YAngle - (float)(Math.PI / 2);
-      }
-
-
-      
-
       // Up and Down zoom in and out
       if (keyboard.IsKeyDown(Keys.W)) {
-        handler3D.Zoom -= .1f;
+        handler3D.Zoom += .01f;
       } else if (keyboard.IsKeyDown(Keys.S)) {
-        handler3D.Zoom += .1f;
+        handler3D.Zoom -= .01f;
       }
 
       // Left and Right rotate around
@@ -140,6 +121,7 @@ namespace KinectSample {
       } else if (keyboard.IsKeyDown(Keys.Down)) {
         handler3D.RotationX -= .01f;
       }
+
 
       handler3D.SetUpCamera();
       base.Update(gameTime);
@@ -168,29 +150,63 @@ namespace KinectSample {
       // Clear the screen
       GraphicsDevice.Clear(Color.CornflowerBlue);
 
-      // Get cubes
-      foreach (Cube cube in cubes) {
-        verts.AddRange(cube.Points);
-      }
+      draw3d(4);
 
-      // Split up into different batches, draw
-      List<VertexPositionColor>[] arr = batchHandler.handleBatches(verts);
-      foreach (List<VertexPositionColor> batch in arr) {
-        GraphicsDevice.DrawUserPrimitives(
-          PrimitiveType.TriangleList,
-          batch.ToArray(),
-          0,
-          batch.Count / 3,
-          VertexPositionColor.VertexDeclaration);
-      }
-
-      /*
-      arrow.RotX = androidBridge.XAngle - (float)(Math.PI / 2);
-      arrow.RotY = androidBridge.YAngle - (float)(Math.PI / 2);
-
-      arrow.DrawModel(graphics);
-      */
       base.Draw(gameTime);
+    }
+
+    private void draw3d(int res) {
+      var depth = manager.Frame;
+
+      
+      // Only displays 1/res of the points of the point cloud
+      if (depth != null) {
+
+        // Run RANSAC with the center of the image being part of the plane
+        var target = depth[depth.Length / 2];
+        depth[depth.Length / 2] = depth[0];
+        depth[0] = target;
+
+        Plane plane = manager.RANSAC(target, depth);
+
+        cubes.Clear();
+        verts.Clear();
+
+        int ind = 0;
+        foreach (var point in depth) {
+          if (++ind == res) {
+            ind = 0;
+
+            // Points on the plane are colored red, else their color
+            Vector3 v = new Vector3(point.point.X, point.point.Y, point.point.Z);
+            if (plane.getDistance(v) < .1) {
+              cubes.Add(new Cube(point.point, Color.Red));
+            } else {
+              cubes.Add(new Cube(point.point, point.color));
+            }
+          }
+        }
+
+        // Get cubes
+        foreach (Cube cube in cubes) {
+          verts.AddRange(cube.Points);
+        }
+
+        // Split up into different batches, draw
+        List<VertexPositionColor>[] arr = batchHandler.handleBatches(verts);
+
+        foreach (List<VertexPositionColor> batch in arr) {
+          if (batch.Count == 0) {
+            continue;
+          }
+          GraphicsDevice.DrawUserPrimitives(
+            PrimitiveType.TriangleList,
+            batch.ToArray(),
+            0,
+            batch.Count / 3,
+            VertexPositionColor.VertexDeclaration);
+        }
+      }
     }
   }
 }

@@ -38,7 +38,7 @@ namespace Kinect {
     public void init(GraphicsDevice device, Effect effect) {
       this.device = device;
       this.effect = effect;
-      this.Zoom = 2;
+      this.Zoom = -2;
 
       // Set the Technique for the Effect
       this.effect.CurrentTechnique = effect.Techniques["ColoredNoShading"];
@@ -49,7 +49,7 @@ namespace Kinect {
     // Update and apply the 3d view
     public void SetUpCamera() {
       viewMatrix = Matrix.CreateLookAt(new Vector3(0, 0, Zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-      projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 1.0f, 1000.0f);
+      projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 1.0f, 100.0f);
       rotationMatrix = Matrix.CreateRotationY(RotationY) * Matrix.CreateRotationX(RotationX);
 
       effect.Parameters["xView"].SetValue(viewMatrix);
