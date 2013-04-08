@@ -211,6 +211,8 @@ namespace KinectSample {
       }
 
       if (plane != null) {
+
+        /*
         var res = overlay.Rotate(plane.Normal, Vector3.Zero);
         foreach (var pt in res) {
           SkeletonPoint point = pt.point;
@@ -218,7 +220,7 @@ namespace KinectSample {
           double fX =  Math.Floor(point.X + manager.Width / 2);
 
           image[(int)(fY * manager.Width + fX)] = UintFromColor(pt.color);
-        }
+        }*/
 
         /*
         foreach (var coord in coords) {
@@ -239,6 +241,17 @@ namespace KinectSample {
       spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
       spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
       spriteBatch.End();
+
+      if (plane != null) {
+        Vector3 normal = plane.Normal;
+        double rotX = Math.Atan2(normal.Z, normal.X);
+        double rotY = Math.Atan2(normal.Z, normal.Y);
+
+
+        arrow.RotX = (float)rotX;
+        arrow.RotY = (float)rotY;
+        arrow.DrawModel(graphics);
+      }
     }
 
     private void draw3d(int res) {

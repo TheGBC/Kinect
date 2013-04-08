@@ -42,7 +42,19 @@ namespace KinectSample {
     /// <param name="v2">A vector on the plane</param>
     /// <param name="p">A point on the plane</param>
     public void setPlane(Vector3 v1, Vector3 v2, Vector3 p) {
-      normal = Vector3.Cross(v1, v2);
+      Vector3 n1 = Vector3.Cross(v1, v2);
+      Vector3 n2 = new Vector3(-n1.X, -n1.Y, -n1.Z);
+
+      double d1 = Vector3.Add(n1, p).Length();
+      double d2 = Vector3.Add(n2, p).Length();
+
+      if (d1 > d2) {
+        normal = n2;
+      } else {
+        normal = n1;
+      }
+
+
       d = -((normal.X * p.X) + (normal.Y * p.Y) + (normal.Z * p.Z));
     }
 

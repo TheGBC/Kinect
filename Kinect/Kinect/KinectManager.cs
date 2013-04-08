@@ -214,18 +214,6 @@ namespace KinectSample {
           coordinates[randInd] = coordinates[i];
           coordinates[i] = coord;
         }
-
-        points.Sort((x, y) => {
-          return (int)(1000 * (x.X - y.X));
-        });
-
-        points.Sort((x, y) => {
-          return (int)(1000 * (x.Y - y.Y));
-        });
-
-        points.Sort((x, y) => {
-          return (int)(1000 * (x.Z - y.Z));
-        });
         
 
         // Build two vectors from the three points and then calculate the plane
