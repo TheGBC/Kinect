@@ -31,13 +31,13 @@
       <Time>2013-03-15T22:16:17.8541936-07:00</Time>
     </Item>
     <Item>
-      <Source>richard.jpg</Source>
-      <Name>richard</Name>
+      <Source>grid.jpg</Source>
+      <Name>grid</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\richard.xnb</Output>
-      <Time>2013-04-07T17:13:35.9906007-07:00</Time>
+      <Output>C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\grid.xnb</Output>
+      <Time>2013-04-09T20:12:20.4741545-07:00</Time>
     </Item>
     <BuildSuccessful>true</BuildSuccessful>
     <Settings>

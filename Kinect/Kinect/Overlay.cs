@@ -23,10 +23,8 @@ namespace KinectSample {
 
     public static double rotX = 0;
     public static double rotY = 0;
-
+    /*
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset) {
-      /*double rotX = Math.Atan2(norm.Y, norm.Z);
-      double rotY = Math.Atan2(norm.X, norm.Z);*/
 
       Vector3[] points = Points(col);
       KinectManager.Coordinate[] res = new KinectManager.Coordinate[points.Length];
@@ -58,16 +56,20 @@ namespace KinectSample {
       res.Z = (float)(sinY * res.X - cosY * res.Z);
 
       return res;
-    }
+    }*/
 
-    /*
+    
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset) {
+      Vector3 z = new Vector3(0, 0, -1);
+      double angle = Math.Acos(Vector3.Dot(norm, z) / norm.Length());
 
-      double angle = Math.Acos(Vector3.Dot(norm, Vector3.UnitZ) / norm.Length());
       double cos = Math.Cos(angle);
       double sin = Math.Sin(angle);
 
-      Vector3 rot = Vector3.Normalize(Vector3.Cross(Vector3.UnitZ, norm));
+      Vector3 rot = Vector3.Normalize(Vector3.Cross(z, norm));
+      if (cos == 1) {
+        rot = Vector3.Up;
+      }
       
       KinectManager.Coordinate[] res = new KinectManager.Coordinate[col.Length];
 
@@ -75,9 +77,9 @@ namespace KinectSample {
       for (int i = 0; i < points.Length; i++) {
         Vector3 p = Rotate(points[i], rot, cos, sin);
         SkeletonPoint skPt = new SkeletonPoint();
-        skPt.X = p.X;
-        skPt.Y = p.Y;
-        skPt.Z = p.Z;
+          skPt.X = p.X;
+          skPt.Y = p.Y;
+          skPt.Z = p.Z;
 
 
         res[i] = new KinectManager.Coordinate();
@@ -89,6 +91,7 @@ namespace KinectSample {
     }
 
     private Vector3 Rotate(Vector3 point, Vector3 axis, double cos, double sin) {
+
       float x = point.X;
       float y = point.Y;
       float z = point.Z;
@@ -103,7 +106,7 @@ namespace KinectSample {
       float nZ = (float)((w * dot * (1 - cos)) + (z * cos) + (sin * ((-v * x) + (u * y))));
 
       return new Vector3(nX, nY, nZ);
-    }*/
+    }
 
     private Vector3[] Points(Color[] col) {
       Vector3[] res = new Vector3[col.Length];

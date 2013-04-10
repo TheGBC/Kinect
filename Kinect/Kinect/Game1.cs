@@ -100,7 +100,7 @@ namespace KinectSample {
       spriteBatch = new SpriteBatch(GraphicsDevice);
       arrow = new Arrow(Content.Load<Model>("arrow"));
 
-      tex = Content.Load<Texture2D>("richard");
+      tex = Content.Load<Texture2D>("grid");
       overlay = new Overlay(tex);
 
       handler3D.init(GraphicsDevice, Content.Load<Effect>("effects"));
@@ -112,7 +112,7 @@ namespace KinectSample {
     protected override void Update(GameTime gameTime) {
       if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
         this.Exit();
-
+      /*
       KeyboardState keyboard = Keyboard.GetState();
 
       millis += (long)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -150,7 +150,7 @@ namespace KinectSample {
         Overlay.rotX += .01f;
       }
 
-      handler3D.SetUpCamera();
+      handler3D.SetUpCamera();*/
       base.Update(gameTime);
     }
 
@@ -194,8 +194,6 @@ namespace KinectSample {
       return res;
     }
 
-    private Plane plane = null;
-
     private void draw2d() {
       GraphicsDevice.Textures[0] = null;
 
@@ -206,21 +204,20 @@ namespace KinectSample {
         return;
       }
 
-      if (plane == null || getPlane) {
-        plane = manager.Plane;
-      }
+      Plane plane = manager.Plane;
 
       if (plane != null) {
 
-        /*
+        
         var res = overlay.Rotate(plane.Normal, Vector3.Zero);
         foreach (var pt in res) {
+          
           SkeletonPoint point = pt.point;
           double fY = Math.Floor(point.Y + manager.Height / 2);
-          double fX =  Math.Floor(point.X + manager.Width / 2);
+          double fX = Math.Floor(point.X + manager.Width / 2);
 
           image[(int)(fY * manager.Width + fX)] = UintFromColor(pt.color);
-        }*/
+        }
 
         /*
         foreach (var coord in coords) {
@@ -241,17 +238,6 @@ namespace KinectSample {
       spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
       spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
       spriteBatch.End();
-
-      if (plane != null) {
-        Vector3 normal = plane.Normal;
-        double rotX = Math.Atan2(normal.Z, normal.X);
-        double rotY = Math.Atan2(normal.Z, normal.Y);
-
-
-        arrow.RotX = (float)rotX;
-        arrow.RotY = (float)rotY;
-        arrow.DrawModel(graphics);
-      }
     }
 
     private void draw3d(int res) {
