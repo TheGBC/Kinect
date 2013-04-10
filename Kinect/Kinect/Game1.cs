@@ -207,18 +207,6 @@ namespace KinectSample {
       Plane plane = manager.Plane;
 
       if (plane != null) {
-
-        
-        var res = overlay.Rotate(plane.Normal, Vector3.Zero);
-        foreach (var pt in res) {
-          
-          SkeletonPoint point = pt.point;
-          double fY = Math.Floor(point.Y + manager.Height / 2);
-          double fX = Math.Floor(point.X + manager.Width / 2);
-
-          image[(int)(fY * manager.Width + fX)] = UintFromColor(pt.color);
-        }
-
         /*
         foreach (var coord in coords) {
           Vector3 v = new Vector3(coord.point.X, coord.point.Y, coord.point.Z);
@@ -229,6 +217,16 @@ namespace KinectSample {
             }
           }
         }*/
+        
+        var res = overlay.Rotate(plane.Normal, Vector3.Zero);
+        foreach (var pt in res) {
+
+          SkeletonPoint point = pt.point;
+          double fY = Math.Floor(point.Y + manager.Height / 2);
+          double fX = Math.Floor(point.X + manager.Width / 2);
+
+          image[(int)(fY * manager.Width + fX)] = UintFromColor(pt.color);
+        }
       }
 
       //image[240 * 640 + 320] = 0xFFFF0000;

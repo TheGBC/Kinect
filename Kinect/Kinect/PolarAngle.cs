@@ -10,7 +10,7 @@ namespace Kinect
     /// <summary>
     /// Compares points by polar angle to the 0 point.
     /// </summary>
-    class PolarAngle : IComparer<Point>
+    class PolarAngle
     {
         //private Point point0;
         private double ref_x;

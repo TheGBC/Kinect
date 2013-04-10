@@ -194,7 +194,7 @@ namespace KinectSample {
       int iterations = 0;
 
       // Loop until one condition is met
-      while (memberCount < coordinates.Count / 15 || ++iterations > 1) {
+      while (memberCount < coordinates.Count / 5 && ++iterations < 100) {
         // Three points that fit on the plane
         List<Vector3> points = new List<Vector3>();
 
@@ -239,6 +239,7 @@ namespace KinectSample {
           memberCount = cnt;
         }
       }
+      //plane.transform();
       return plane;
     }
 

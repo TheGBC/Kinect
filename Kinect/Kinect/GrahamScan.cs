@@ -68,7 +68,7 @@ namespace Kinect
         //  Otherwise the three points are co-linear.
         private Boolean counterClockWise(Vector3 b, Vector3 c, Vector3 min)
         {
-            if( (c.X-min.X)*(b.Y-min.Y) <  (c.Y-min.Y)*(b.X-min.X) {
+            if( (c.X-min.X)*(b.Y-min.Y) <  (c.Y-min.Y)*(b.X-min.X)) {
                 return true;
             }
             else {
