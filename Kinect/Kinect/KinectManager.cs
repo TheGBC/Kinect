@@ -8,23 +8,34 @@ using System.Threading;
 using Microsoft.Xna.Framework;
 
 namespace KinectSample {
+  /// <summary>
+  /// Handles Processing with Kinect
+  /// </summary>
   class KinectManager {
-    private KinectSensor sensor = null;
 
+    // The Kinect Sensor
+    private KinectSensor sensor = null;
+    private CoordinateMapper mapper = null;
+
+    // Locks to prevent untimely access to resources
     private bool frameReady = true;
     private object frameLock = new object();
 
+    // Width and Height of frame
     private readonly int WIDTH = 640;
     private readonly int HEIGHT = 480;
 
+    // Current Frame
     private List<Coordinate> points = null;
+    private uint[] image = null;
+    private DepthImagePixel[] depth = null;
+    private Plane plane = null;
 
-    private readonly DepthImageFormat DEPTH_FORMAT = DepthImageFormat.Resolution320x240Fps30;
+    // Formats for Depth and Color
+    private readonly DepthImageFormat DEPTH_FORMAT = DepthImageFormat.Resolution640x480Fps30;
     private readonly ColorImageFormat COLOR_FORMAT = ColorImageFormat.RgbResolution640x480Fps30;
 
-    private readonly int MIN_PLANE_MEMBERS = 1000;
-    private readonly int MAX_ITERATION = 300;
-
+    // Initialize the KinectManager
     public KinectManager() {
       foreach (KinectSensor potentialSensor in KinectSensor.KinectSensors) {
         if (potentialSensor.Status == KinectStatus.Connected) {
@@ -36,6 +47,8 @@ namespace KinectSample {
       if (sensor == null) {
         return;
       }
+
+      mapper = new CoordinateMapper(sensor);
 
       sensor.DepthStream.Enable(DEPTH_FORMAT);
       sensor.ColorStream.Enable(COLOR_FORMAT);
@@ -96,66 +109,136 @@ namespace KinectSample {
     }
 
     /// <summary>
-    /// 
+    /// The Current Image
     /// </summary>
-    /// <param name="coordinates"></param>
-    /// <returns></returns>
-    public Plane RANSAC(Coordinate[] coordinates) {
+    public uint[] Image {
+      get {
+        uint[] res = null;
+        Monitor.Enter(frameLock);
+
+        if (image != null) {
+          res = new uint[image.Length];
+          image.CopyTo(res, 0);
+        }
+
+        Monitor.Exit(frameLock);
+        return res;
+      }
+    }
+
+    /// <summary>
+    /// The Current Depth Image
+    /// </summary>
+    public DepthImagePixel[] Depth {
+      get {
+        DepthImagePixel[] res = null;
+        Monitor.Enter(frameLock);
+
+        if (depth != null) {
+          res = new DepthImagePixel[depth.Length];
+          depth.CopyTo(res, 0);
+        }
+
+        Monitor.Exit(frameLock);
+        return res;
+      }
+    }
+
+    public ColorImagePoint Map(SkeletonPoint pt) {
+      return mapper.MapSkeletonPointToColorPoint(pt, COLOR_FORMAT);
+    }
+
+    public Plane Plane {
+      get {
+        Plane res = null;
+        Monitor.Enter(frameLock);
+
+        if (plane != null) {
+          res = (Plane)plane.Clone();
+        }
+
+        Monitor.Exit(frameLock);
+        return res;
+      }
+    }
+
+    /// <summary>
+    /// Runs the RANSAC plane detection algorithm on the coordinates given
+    /// </summary>
+    /// <param name="coordinates">coordinates to run RANSAC on</param>
+    /// <returns>A plane that fits the required amount of points</returns>
+    private Plane RANSAC(List<Coordinate> coordinates) {
+
+      // Get a random target
       Random r = new Random();
-      Coordinate target = coordinates[r.Next(coordinates.Length)];
-      coordinates[r.Next(coordinates.Length)] = coordinates[0];
+      Coordinate target = coordinates[r.Next(coordinates.Count)];
+      coordinates[r.Next(coordinates.Count)] = coordinates[0];
       coordinates[0] = target;
+
       return RANSAC(target, coordinates);
     }
 
     /// <summary>
-    /// Runs the RANSAC plane detection algorithm on the coordinates give
+    /// Runs the RANSAC plane detection algorithm on the coordinates given with a 
+    /// point, target, on the plane
     /// </summary>
-    /// <param name="coordinates">coordinates to run RANSAC on</param>
-    /// <returns>A plane that fits at least 100 points in the list</returns>
-    public Plane RANSAC(Coordinate target, Coordinate[] coordinates) {
+    /// <param name="target">A coordinate on the plane</param>
+    /// <param name="coordinates">coordinates to run RANSAC on, target should
+    /// be the first element in coordinates</param>
+    /// <returns>A plane that fits the required amount of points</returns>
+    private Plane RANSAC(Coordinate target, List<Coordinate> coordinates) {
       Plane plane = null;
 
-      int planeCnt = 0;
-      int iteration = 0;
+      // The initial number of members in the current plane
+      int memberCount = 0;
+      int iterations = 0;
 
-      while (planeCnt < MIN_PLANE_MEMBERS && ++iteration < MAX_ITERATION) {
+      // Loop until one condition is met
+      while (memberCount < coordinates.Count / 15 || ++iterations > 1) {
+        // Three points that fit on the plane
+        List<Vector3> points = new List<Vector3>();
+
+        // Get the first point from target
         SkeletonPoint targetSkeleton = target.point;
-        Vector3[] points = new Vector3[3];
-        points[0] = new Vector3(targetSkeleton.X, targetSkeleton.Y, targetSkeleton.Z);
+        points.Add(new Vector3(targetSkeleton.X, targetSkeleton.Y, targetSkeleton.Z));
 
+        // Randomly find the next two points and swap them with the first few points in the list
+        // (Like shuffling a deck)
         Random rand = new Random();
-
         for (int i = 1; i < 3; i++) {
-          int randInd = rand.Next(coordinates.Length - i) + i;
+          int randInd = rand.Next(coordinates.Count - i) + i;
           Coordinate coord = coordinates[randInd];
 
-          points[i] = new Vector3(coord.point.X, coord.point.Y, coord.point.Z);
+          points.Add(new Vector3(coord.point.X, coord.point.Y, coord.point.Z));
 
           coordinates[randInd] = coordinates[i];
           coordinates[i] = coord;
         }
+        
 
+        // Build two vectors from the three points and then calculate the plane
         Vector3 v1 = Vector3.Subtract(points[0], points[1]);
         Vector3 v2 = Vector3.Subtract(points[0], points[2]);
         Plane nextPlane = new Plane(v1, v2, points[0]);
 
 
+        // See how many points are on the plane
         int cnt = 0;
         foreach (Coordinate c in coordinates) {
           Vector3 v = new Vector3(c.point.X, c.point.Y, c.point.Z);
-          if (nextPlane.getDistance(v) < .001) {
+          double d = nextPlane.getDistance(v);
+          if (d < .01) {
             cnt++;
           }
         }
 
-        if (cnt > planeCnt) {
-          planeCnt = cnt;
+        // If this plane has more members than the current one,
+        // set the current plane to this plane
+        if (cnt > memberCount) {
           plane = nextPlane;
+          memberCount = cnt;
         }
-
       }
-
       return plane;
     }
 
@@ -175,10 +258,10 @@ namespace KinectSample {
           Monitor.Enter(frameLock);
 
           // Init
-          CoordinateMapper mapper = new CoordinateMapper(sensor);
-          DepthImagePixel[] depthPixels = new DepthImagePixel[depthFrame.PixelDataLength];
           SkeletonPoint[] realPoints = new SkeletonPoint[depthFrame.PixelDataLength];
+          depth = new DepthImagePixel[depthFrame.PixelDataLength];
           byte[] colorData = new byte[colorFrame.PixelDataLength];
+          image = new uint[colorData.Length / 4];
 
           // Clear the coordinates from the previous frame
           if (points != null) {
@@ -188,16 +271,24 @@ namespace KinectSample {
           }
 
           // Obtain raw data from frames
-          depthFrame.CopyDepthImagePixelDataTo(depthPixels);
+          depthFrame.CopyDepthImagePixelDataTo(depth);
           colorFrame.CopyPixelDataTo(colorData);
 
+          // Build the image
+          for (int i = 0; i < image.Length; i++) {
+            byte r = colorData[(i * 4)];
+            byte g = colorData[(i * 4) + 1];
+            byte b = colorData[(i * 4) + 2];
+            image[i] = ColorFromBytes(r, g, b);
+          }
+
           // Map depth to real world skeleton points
-          mapper.MapDepthFrameToSkeletonFrame(DEPTH_FORMAT, depthPixels, realPoints);
+          mapper.MapDepthFrameToSkeletonFrame(DEPTH_FORMAT, depth, realPoints);
 
           // Select the points that are within range and add them to coordinates
           for (int i = 0; i < realPoints.Length; i++) {
-            if (depthPixels[i].Depth >= depthFrame.MaxDepth
-                || depthPixels[i].Depth <= depthFrame.MinDepth) {
+            if (depth[i].Depth >= depthFrame.MaxDepth
+                || depth[i].Depth <= depthFrame.MinDepth) {
                   continue;
             }
 
@@ -208,8 +299,15 @@ namespace KinectSample {
             coord.point = realPoints[i];
             coord.color = ColorFromColorPoint(colorPoint, colorData);
             points.Add(coord);
+
+            
           }
 
+          if (depth.Length > 0 && depth[240 * 640 + 320].Depth > depthFrame.MinDepth && depth[240 * 640 + 320].Depth < depthFrame.MaxDepth) {
+            Coordinate c = new Coordinate();
+            c.point = realPoints[240 * 640 + 320];
+            plane = RANSAC(c, points);
+          }
           // Release resources, now ready for next callback
           Monitor.Exit(frameLock);
           frameReady = true;
@@ -232,6 +330,18 @@ namespace KinectSample {
       return new Color(r, g, b);
     }
 
+    // Get the int color from rgb
+    private uint ColorFromBytes(byte r, byte g, byte b) {
+      uint res = 255;
+      res = (res << 8) + r;
+      res = (res << 8) + g;
+      res = (res << 8) + b;
+      return res;
+    }
+
+    /// <summary>
+    /// A Coordinate that contains both position and color
+    /// </summary>
     public struct Coordinate {
       public SkeletonPoint point;
       public Color color;

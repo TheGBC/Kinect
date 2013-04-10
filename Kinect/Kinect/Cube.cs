@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace Kinect {
 
-  /**
-   * Cube object to be rendered
-   */
+  /// <summary>
+  /// A Cube to be rendered
+  /// </summary>
   class Cube {
     // Keeps track of the 8 cube corners
     private Vector3[] verts = new Vector3[8];
@@ -20,20 +20,31 @@ namespace Kinect {
     // Indices to draw the 12 triangles
     private VertexPositionColor[] points = new VertexPositionColor[36];
 
-    // Color generated from the depth
+    // Color of cube, defaults to black
     private Color color = Color.Black;
 
-    // Construct a cube at center
+    /// <summary>
+    /// Construct a cube with its center at center
+    /// </summary>
+    /// <param name="center">center of the cube</param>
     public Cube(SkeletonPoint center) {
       init(center);
     }
 
+    /// <summary>
+    /// Construct a cube with its center at center and color
+    /// as color
+    /// </summary>
+    /// <param name="center">center of the cube</param>
+    /// <param name="color">color of the cube</param>
     public Cube(SkeletonPoint center, Color color){
       this.color = color;
       init(center);
     }
 
-    // Get the indices of the cube
+    /// <summary>
+    ///  Get the indices of the cube
+    /// </summary>
     public VertexPositionColor[] Points {
       get {
         return points;
@@ -41,21 +52,19 @@ namespace Kinect {
     }
 
     // Generate the cube given the center
-    public void init(SkeletonPoint center) {
-
-      float x_off = .005f;
-      float y_off = .005f;
-      float z_off = .005f;
+    private void init(SkeletonPoint center) {
+      // Half a side length
+      float s = .002f;
 
       // Get Corners
-      verts[0] = new Vector3(center.X + x_off, center.Y + y_off, center.Z - z_off);
-      verts[1] = new Vector3(center.X - x_off, center.Y + y_off, center.Z - z_off);
-      verts[2] = new Vector3(center.X + x_off, center.Y - y_off, center.Z - z_off);
-      verts[3] = new Vector3(center.X - x_off, center.Y - y_off, center.Z - z_off);
-      verts[4] = new Vector3(center.X + x_off, center.Y + y_off, center.Z + z_off);
-      verts[5] = new Vector3(center.X - x_off, center.Y + y_off, center.Z + z_off);
-      verts[6] = new Vector3(center.X + x_off, center.Y - y_off, center.Z + z_off);
-      verts[7] = new Vector3(center.X - x_off, center.Y - y_off, center.Z + z_off);
+      verts[0] = new Vector3(center.X + s, center.Y + s, center.Z - s);
+      verts[1] = new Vector3(center.X - s, center.Y + s, center.Z - s);
+      verts[2] = new Vector3(center.X + s, center.Y - s, center.Z - s);
+      verts[3] = new Vector3(center.X - s, center.Y - s, center.Z - s);
+      verts[4] = new Vector3(center.X + s, center.Y + s, center.Z + s);
+      verts[5] = new Vector3(center.X - s, center.Y + s, center.Z + s);
+      verts[6] = new Vector3(center.X + s, center.Y - s, center.Z + s);
+      verts[7] = new Vector3(center.X - s, center.Y - s, center.Z + s);
 
       // Get Indices
       points = indexToVertices(new Vector3[] {

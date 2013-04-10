@@ -119,6 +119,7 @@
     <Compile Include="GrahamScan.cs" />
     <Compile Include="Handler3D.cs" />
     <Compile Include="KinectManager.cs" />
+    <Compile Include="Overlay.cs" />
     <Compile Include="Plane.cs" />
     <Compile Include="PolarAngle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
