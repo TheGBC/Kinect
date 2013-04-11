@@ -6,6 +6,7 @@ using Microsoft.Kinect;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Xna.Framework;
+using Kinect;
 
 namespace KinectSample {
   /// <summary>
@@ -25,10 +26,16 @@ namespace KinectSample {
     private readonly int WIDTH = 640;
     private readonly int HEIGHT = 480;
 
+    private readonly int DEPTH_WIDTH = 640;
+    private readonly int DEPTH_HEIGHT = 480;
+
     // Current Frame
     private List<Coordinate> points = null;
     private uint[] image = null;
     private DepthImagePixel[] depth = null;
+
+    private HashSet<SkeletonPoint> planePoints = null;
+
     private Plane plane = null;
 
     // Formats for Depth and Color
@@ -162,6 +169,33 @@ namespace KinectSample {
       }
     }
 
+    public bool[] PlanePoints {
+      get {
+        bool[] res = null;
+        Monitor.Enter(frameLock);
+
+        if (planePoints != null) {
+          res = new bool[WIDTH * HEIGHT];
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            res[i] = false;
+          }
+
+          foreach(SkeletonPoint p in planePoints){
+            ColorImagePoint pt = mapper.MapSkeletonPointToColorPoint(p, COLOR_FORMAT);
+            SkeletonPoint newSp = new SkeletonPoint();
+            newSp.X = pt.X;
+            newSp.Y = pt.Y;
+            newSp.Z = 0;
+            if (pt.X >= 0 && pt.X < WIDTH && pt.Y >= 0 && pt.Y < HEIGHT) {
+              res[(int)(newSp.Y * WIDTH + newSp.X)] = true;
+            }
+          }
+        }
+        Monitor.Exit(frameLock);
+        return res;
+      }
+    }
+
     /// <summary>
     /// Runs the RANSAC plane detection algorithm on the coordinates given
     /// </summary>
@@ -188,13 +222,17 @@ namespace KinectSample {
     /// <returns>A plane that fits the required amount of points</returns>
     private Plane RANSAC(Coordinate target, List<Coordinate> coordinates) {
       Plane plane = null;
+      planePoints = new HashSet<SkeletonPoint>();
 
       // The initial number of members in the current plane
       int memberCount = 0;
       int iterations = 0;
 
       // Loop until one condition is met
-      while (memberCount < coordinates.Count / 5 && ++iterations < 100) {
+      while (memberCount < coordinates.Count / 10 && ++iterations < 50) {
+        // Clear all members
+        planePoints.Clear();
+
         // Three points that fit on the plane
         List<Vector3> points = new List<Vector3>();
 
@@ -226,9 +264,14 @@ namespace KinectSample {
         int cnt = 0;
         foreach (Coordinate c in coordinates) {
           Vector3 v = new Vector3(c.point.X, c.point.Y, c.point.Z);
+
           double d = nextPlane.getDistance(v);
           if (d < .01) {
             cnt++;
+          }
+
+          if (d < .1) {
+            planePoints.Add(c.point);
           }
         }
 
@@ -239,7 +282,7 @@ namespace KinectSample {
           memberCount = cnt;
         }
       }
-      //plane.transform();
+
       return plane;
     }
 
@@ -304,9 +347,9 @@ namespace KinectSample {
             
           }
 
-          if (depth.Length > 0 && depth[240 * 640 + 320].Depth > depthFrame.MinDepth && depth[240 * 640 + 320].Depth < depthFrame.MaxDepth) {
+          if (depth.Length > 0 && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth > depthFrame.MinDepth && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth < depthFrame.MaxDepth) {
             Coordinate c = new Coordinate();
-            c.point = realPoints[240 * 640 + 320];
+            c.point = realPoints[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2];
             plane = RANSAC(c, points);
           }
           // Release resources, now ready for next callback

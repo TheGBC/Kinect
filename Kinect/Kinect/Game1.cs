@@ -70,9 +70,6 @@ namespace KinectSample {
     private List<VertexPositionColor> verts = new List<VertexPositionColor>();
     private List<Cube> cubes = new List<Cube>();
 
-    private bool getPlane = true;
-    private bool press = false;
-
     // Kinect Manager to process depth and video
     private KinectManager manager = new KinectManager();
 
@@ -112,45 +109,6 @@ namespace KinectSample {
     protected override void Update(GameTime gameTime) {
       if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
         this.Exit();
-      /*
-      KeyboardState keyboard = Keyboard.GetState();
-
-      millis += (long)gameTime.ElapsedGameTime.TotalMilliseconds;
-      if (keyboard.IsKeyUp(Keys.Enter)) {
-        if (!press) {
-          getPlane = !getPlane;
-        }
-        press = true;
-      } else {
-        press = false;
-      }
-
-      // W and S zoom in and out
-      if (keyboard.IsKeyDown(Keys.W)) {
-        handler3D.Zoom += .01f;
-      } else if (keyboard.IsKeyDown(Keys.S)) {
-        handler3D.Zoom -= .01f;
-      }
-
-      // Left and Right rotate around
-      if (keyboard.IsKeyDown(Keys.Left)) {
-        handler3D.RotationY += .01f;
-        Overlay.rotY -= .01f;
-      } else if (keyboard.IsKeyDown(Keys.Right)) {
-        handler3D.RotationY -= .01f;
-        Overlay.rotY += .01f;
-      }
-
-      // Up and Down rotate around
-      if (keyboard.IsKeyDown(Keys.Up)) {
-        handler3D.RotationX += .01f;
-        Overlay.rotX -= .01f;
-      } else if (keyboard.IsKeyDown(Keys.Down)) {
-        handler3D.RotationX -= .01f;
-        Overlay.rotX += .01f;
-      }
-
-      handler3D.SetUpCamera();*/
       base.Update(gameTime);
     }
 
@@ -159,7 +117,6 @@ namespace KinectSample {
       // Clear the screen
       GraphicsDevice.Clear(Color.CornflowerBlue);
 
-      //draw3d(4);
       draw2d();
 
       base.Draw(gameTime);
@@ -194,19 +151,22 @@ namespace KinectSample {
       return res;
     }
 
+    private KinectManager.Coordinate[] res = null;
+
     private void draw2d() {
       GraphicsDevice.Textures[0] = null;
-
       uint[] image = manager.Image;
       var coords = manager.Frame;
+      
 
       if (image == null || coords == null || coords.Length < 3) {
         return;
       }
-
+      
       Plane plane = manager.Plane;
 
-      if (plane != null) {
+      bool[] planePoints = manager.PlanePoints;
+      if (plane != null /*&& planePoints != null*/) {
         /*
         foreach (var coord in coords) {
           Vector3 v = new Vector3(coord.point.X, coord.point.Y, coord.point.Z);
@@ -214,18 +174,31 @@ namespace KinectSample {
             ColorImagePoint col = manager.Map(coord.point);
             if (col.X >= 0 && col.X < manager.Width && col.Y >= 0 && col.Y < manager.Height) {
               image[col.Y * manager.Width + col.X] = transparency(image[col.Y * manager.Width + col.X], 0xFFFF0000);
+
+              SkeletonPoint pt = new SkeletonPoint();
+              pt.X = col.X;
+              pt.Y = col.Y;
+              pt.Z = 0;
+
+              planePoints.Add(pt);
             }
           }
         }*/
+
         
-        var res = overlay.Rotate(plane.Normal, Vector3.Zero);
+        res = overlay.Rotate(plane.Normal, Vector3.Zero);
+        
         foreach (var pt in res) {
 
           SkeletonPoint point = pt.point;
-          double fY = Math.Floor(point.Y + manager.Height / 2);
-          double fX = Math.Floor(point.X + manager.Width / 2);
 
-          image[(int)(fY * manager.Width + fX)] = UintFromColor(pt.color);
+          point.X = (int)Math.Floor(point.X + manager.Width / 2);
+          point.Y = (int)Math.Floor(point.Y + manager.Height / 2);
+          int ind = (int)(point.Y * manager.Width + point.X);
+
+          if (planePoints[ind]) {
+            image[ind] = UintFromColor(pt.color);
+          }
         }
       }
 
@@ -236,6 +209,15 @@ namespace KinectSample {
       spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
       spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
       spriteBatch.End();
+    }
+
+    private bool contains(List<ColorImagePoint> points, int x, int y) {
+      foreach (ColorImagePoint point in points) {
+        if (point.X == x && point.Y == y) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private void draw3d(int res) {

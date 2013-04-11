@@ -12,7 +12,6 @@ namespace KinectSample {
     // Plane is represented by its normal and offset, D
     private Vector3 normal;
     private float d;
-    private Vector3 p;
 
     private Plane() { }
 
@@ -54,7 +53,6 @@ namespace KinectSample {
         normal = n1;
       }
 
-      this.p = p;
       d = -((normal.X * p.X) + (normal.Y * p.Y) + (normal.Z * p.Z));
     }
 
@@ -68,9 +66,6 @@ namespace KinectSample {
         / Vector3.Distance(normal, Vector3.Zero));
     }
 
-    public void transform() {
-      normal = Vector3.Subtract(normal, p);
-    }
 
     /// <summary>
     /// Clones the plane
@@ -82,7 +77,6 @@ namespace KinectSample {
       newPlane.normal.X = normal.X;
       newPlane.normal.Y = normal.Y;
       newPlane.normal.Z = normal.Z;
-      newPlane.p = p;
 
       newPlane.d = d;
       return newPlane;
