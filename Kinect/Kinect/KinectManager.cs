@@ -26,8 +26,8 @@ namespace KinectSample {
     private readonly int WIDTH = 640;
     private readonly int HEIGHT = 480;
 
-    private readonly int DEPTH_WIDTH = 640;
-    private readonly int DEPTH_HEIGHT = 480;
+    private readonly int DEPTH_WIDTH = 320;
+    private readonly int DEPTH_HEIGHT = 240;
 
     // Current Frame
     private List<Coordinate> points = null;
@@ -39,7 +39,7 @@ namespace KinectSample {
     private Plane plane = null;
 
     // Formats for Depth and Color
-    private readonly DepthImageFormat DEPTH_FORMAT = DepthImageFormat.Resolution640x480Fps30;
+    private readonly DepthImageFormat DEPTH_FORMAT = DepthImageFormat.Resolution320x240Fps30;
     private readonly ColorImageFormat COLOR_FORMAT = ColorImageFormat.RgbResolution640x480Fps30;
 
     // Initialize the KinectManager
@@ -180,6 +180,7 @@ namespace KinectSample {
             res[i] = false;
           }
 
+
           foreach(SkeletonPoint p in planePoints){
             ColorImagePoint pt = mapper.MapSkeletonPointToColorPoint(p, COLOR_FORMAT);
             SkeletonPoint newSp = new SkeletonPoint();
@@ -190,100 +191,12 @@ namespace KinectSample {
               res[(int)(newSp.Y * WIDTH + newSp.X)] = true;
             }
           }
+
+          res = Algorithm.Dilation(res, WIDTH, HEIGHT);
         }
         Monitor.Exit(frameLock);
         return res;
       }
-    }
-
-    /// <summary>
-    /// Runs the RANSAC plane detection algorithm on the coordinates given
-    /// </summary>
-    /// <param name="coordinates">coordinates to run RANSAC on</param>
-    /// <returns>A plane that fits the required amount of points</returns>
-    private Plane RANSAC(List<Coordinate> coordinates) {
-
-      // Get a random target
-      Random r = new Random();
-      Coordinate target = coordinates[r.Next(coordinates.Count)];
-      coordinates[r.Next(coordinates.Count)] = coordinates[0];
-      coordinates[0] = target;
-
-      return RANSAC(target, coordinates);
-    }
-
-    /// <summary>
-    /// Runs the RANSAC plane detection algorithm on the coordinates given with a 
-    /// point, target, on the plane
-    /// </summary>
-    /// <param name="target">A coordinate on the plane</param>
-    /// <param name="coordinates">coordinates to run RANSAC on, target should
-    /// be the first element in coordinates</param>
-    /// <returns>A plane that fits the required amount of points</returns>
-    private Plane RANSAC(Coordinate target, List<Coordinate> coordinates) {
-      Plane plane = null;
-      planePoints = new HashSet<SkeletonPoint>();
-
-      // The initial number of members in the current plane
-      int memberCount = 0;
-      int iterations = 0;
-
-      // Loop until one condition is met
-      while (memberCount < coordinates.Count / 10 && ++iterations < 50) {
-        // Clear all members
-        planePoints.Clear();
-
-        // Three points that fit on the plane
-        List<Vector3> points = new List<Vector3>();
-
-        // Get the first point from target
-        SkeletonPoint targetSkeleton = target.point;
-        points.Add(new Vector3(targetSkeleton.X, targetSkeleton.Y, targetSkeleton.Z));
-
-        // Randomly find the next two points and swap them with the first few points in the list
-        // (Like shuffling a deck)
-        Random rand = new Random();
-        for (int i = 1; i < 3; i++) {
-          int randInd = rand.Next(coordinates.Count - i) + i;
-          Coordinate coord = coordinates[randInd];
-
-          points.Add(new Vector3(coord.point.X, coord.point.Y, coord.point.Z));
-
-          coordinates[randInd] = coordinates[i];
-          coordinates[i] = coord;
-        }
-        
-
-        // Build two vectors from the three points and then calculate the plane
-        Vector3 v1 = Vector3.Subtract(points[0], points[1]);
-        Vector3 v2 = Vector3.Subtract(points[0], points[2]);
-        Plane nextPlane = new Plane(v1, v2, points[0]);
-
-
-        // See how many points are on the plane
-        int cnt = 0;
-        foreach (Coordinate c in coordinates) {
-          Vector3 v = new Vector3(c.point.X, c.point.Y, c.point.Z);
-
-          double d = nextPlane.getDistance(v);
-          if (d < .01) {
-            cnt++;
-          }
-
-          if (d < .1) {
-            planePoints.Add(c.point);
-          }
-        }
-
-        // If this plane has more members than the current one,
-        // set the current plane to this plane
-        if (cnt > memberCount) {
-          plane = nextPlane;
-          memberCount = cnt;
-        }
-      }
-
-      return plane;
     }
 
     // When both color and depth frames are ready
@@ -350,7 +263,11 @@ namespace KinectSample {
           if (depth.Length > 0 && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth > depthFrame.MinDepth && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth < depthFrame.MaxDepth) {
             Coordinate c = new Coordinate();
             c.point = realPoints[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2];
-            plane = RANSAC(c, points);
+
+            planePoints = new HashSet<SkeletonPoint>();
+            plane = Algorithm.Ransac(c, points, planePoints);
+            
+
           }
           // Release resources, now ready for next callback
           Monitor.Exit(frameLock);

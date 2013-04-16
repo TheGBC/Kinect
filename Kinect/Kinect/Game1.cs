@@ -51,8 +51,6 @@ namespace KinectSample {
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
 
-    private long millis = 0;
-
     // Draws the 3d objects in multiple calls because the number of items to draw is too
     // large for one call
     //
@@ -84,6 +82,7 @@ namespace KinectSample {
       Content.RootDirectory = "Content";
       graphics.PreferredBackBufferHeight = 480;
       graphics.PreferredBackBufferWidth = 640;
+
     }
 
     protected override void Initialize() {
@@ -97,7 +96,7 @@ namespace KinectSample {
       spriteBatch = new SpriteBatch(GraphicsDevice);
       arrow = new Arrow(Content.Load<Model>("arrow"));
 
-      tex = Content.Load<Texture2D>("grid");
+      tex = Content.Load<Texture2D>("g+");
       overlay = new Overlay(tex);
 
       handler3D.init(GraphicsDevice, Content.Load<Effect>("effects"));
@@ -123,7 +122,7 @@ namespace KinectSample {
     }
 
     private uint transparency(uint color, uint overlay) {
-      float alpha = .5f;
+      float alpha = .25f;
       uint oldR = (color >> 16) & 0xFF;
       uint oldG = (color >> 8) & 0xFF;
       uint oldB = color & 0xFF;
@@ -166,6 +165,7 @@ namespace KinectSample {
       Plane plane = manager.Plane;
 
       bool[] planePoints = manager.PlanePoints;
+
       if (plane != null /*&& planePoints != null*/) {
         /*
         foreach (var coord in coords) {
@@ -184,25 +184,32 @@ namespace KinectSample {
             }
           }
         }*/
+        
+        res = overlay.Rotate(plane.Normal, plane.Point);
+        
+        uint[] imgOverlay = new uint[manager.Width * manager.Height];
 
-        
-        res = overlay.Rotate(plane.Normal, Vector3.Zero);
-        
         foreach (var pt in res) {
 
           SkeletonPoint point = pt.point;
 
-          point.X = (int)Math.Floor(point.X + manager.Width / 2);
-          point.Y = (int)Math.Floor(point.Y + manager.Height / 2);
-          int ind = (int)(point.Y * manager.Width + point.X);
+          //Debug.WriteLine(point.Y + " " + point.X);
 
-          if (planePoints[ind]) {
-            image[ind] = UintFromColor(pt.color);
+          int pX = (int)((Math.Floor(((1 / point.Z ) * overlay.Width * (point.X)) + manager.Width / 2)));
+          int pY = (int)((Math.Floor(((1 / point.Z) * overlay.Height * (point.Y)) + manager.Height / 2)));
+          int ind = (int)(pY * manager.Width + pX);
+          if (ind >= 0 && ind < manager.Width * manager.Height) {
+            imgOverlay[ind] = UintFromColor(pt.color);
+          }
+        }
+
+        imgOverlay = Algorithm.Dilation(imgOverlay, manager.Width, manager.Height);
+        for (int i = 0; i < imgOverlay.Length; i++) {
+          if (imgOverlay[i] != 0 && planePoints[i]) {
+            image[i] = transparency(image[i], imgOverlay[i]);
           }
         }
       }
-
-      //image[240 * 640 + 320] = 0xFFFF0000;
 
       texture.SetData<uint>(image);
 

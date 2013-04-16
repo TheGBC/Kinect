@@ -12,6 +12,7 @@ namespace KinectSample {
     // Plane is represented by its normal and offset, D
     private Vector3 normal;
     private float d;
+    private Vector3 p;
 
     private Plane() { }
 
@@ -31,6 +32,11 @@ namespace KinectSample {
     public Vector3 Normal { get { return normal; } }
 
     /// <summary>
+    /// Point on Plane
+    /// </summary>
+    public Vector3 Point { get { return p; } }
+
+    /// <summary>
     /// The offset of the plane
     /// </summary>
     public float Offset { get { return d; } }
@@ -44,8 +50,9 @@ namespace KinectSample {
     public void setPlane(Vector3 v1, Vector3 v2, Vector3 p) {
       Vector3 n1 = Vector3.Cross(v1, v2);
       Vector3 n2 = new Vector3(-n1.X, -n1.Y, -n1.Z);
-      double d1 = n1.Length();
-      double d2 = n2.Length();
+      this.p = p;
+      double d1 = Vector3.Add(n1, p).Length();
+      double d2 = Vector3.Add(n2, p).Length();
 
       if (d1 > d2) {
         normal = n2;
@@ -63,7 +70,7 @@ namespace KinectSample {
     /// <returns>absolute value of the distance between the point and the plane</returns>
     public double getDistance(Vector3 v) {
       return Math.Abs(((normal.X * v.X) + (normal.Y * v.Y) + (normal.Z * v.Z) + d)
-        / Vector3.Distance(normal, Vector3.Zero));
+        / normal.Length());
     }
 
 
@@ -77,6 +84,7 @@ namespace KinectSample {
       newPlane.normal.X = normal.X;
       newPlane.normal.Y = normal.Y;
       newPlane.normal.Z = normal.Z;
+      newPlane.p = p;
 
       newPlane.d = d;
       return newPlane;

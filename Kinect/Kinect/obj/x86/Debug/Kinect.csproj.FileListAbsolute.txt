@@ -15,3 +15,4 @@ C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x8
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.pdb
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\effects.xnb
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\grid.xnb
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\g+.xnb
