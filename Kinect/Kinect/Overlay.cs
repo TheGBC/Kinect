@@ -22,15 +22,15 @@ namespace KinectSample {
     }
     /*
     //private static double rotX = 0;
-    private static double rotY = 0;
+    //private static double rotY = 0;
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset) {
-      //double rotY = Math.Atan2(norm.X, norm.Z);
+      double rotY = Math.Atan2(norm.X, norm.Z);
       double rotX = Math.Atan2(norm.Y, norm.Z);
 
       //rotY = Math.PI / 2;
       //rotX = 0; ;
-      rotY = 0;
-      rotX = 0;
+      //rotY = 0;
+      //rotX = 0;
 
       //Debug.WriteLine(MathHelper.ToDegrees((float)rotY));
       double cosX = Math.Cos(rotX);
@@ -93,7 +93,7 @@ namespace KinectSample {
 
     public int Width { get { return width; } }
     public int Height { get { return height; } }
-
+    
 
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset) {
       //norm.Z = Math.Abs(norm.Z); //postive z axis always
@@ -182,8 +182,8 @@ namespace KinectSample {
       Vector3[] res = new Vector3[col.Length];
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          float indX = (float)x / (float)width;
-          float indY = (float)y / (float)height;
+          float indX = (float)(x - width / 2) / (float)width;
+          float indY = (float)(y - height / 2) / (float)height;
           //Debug.WriteLine(indX + " " + indY);
           //res[y * width + x] = new Vector3(x - (width / 2) , y - (height / 2), v.Z * 100);
           res[y * width + x] = new Vector3(indX, indY, 1);

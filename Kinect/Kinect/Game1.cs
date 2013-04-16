@@ -194,9 +194,12 @@ namespace KinectSample {
           SkeletonPoint point = pt.point;
 
           //Debug.WriteLine(point.Y + " " + point.X);
+          //Debug.WriteLine(point.Z);
+          int pX = (int)((Math.Floor((overlay.Width * (point.X / point.Z))) + (manager.Width / 2)));
+          int pY = (int)((Math.Floor((overlay.Height * (point.Y / point.Z))) + ((manager.Height / 2))));
 
-          int pX = (int)((Math.Floor(((1 / point.Z ) * overlay.Width * (point.X)) + manager.Width / 2)));
-          int pY = (int)((Math.Floor(((1 / point.Z) * overlay.Height * (point.Y)) + manager.Height / 2)));
+          
+
           int ind = (int)(pY * manager.Width + pX);
           if (ind >= 0 && ind < manager.Width * manager.Height) {
             imgOverlay[ind] = UintFromColor(pt.color);
