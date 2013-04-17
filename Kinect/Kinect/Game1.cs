@@ -156,12 +156,12 @@ namespace KinectSample {
       GraphicsDevice.Textures[0] = null;
       uint[] image = manager.Image;
       var coords = manager.Frame;
-      
+
 
       if (image == null || coords == null || coords.Length < 3) {
         return;
       }
-      
+
       Plane plane = manager.Plane;
 
       bool[] planePoints = manager.PlanePoints;
@@ -173,20 +173,20 @@ namespace KinectSample {
           if (plane.getDistance(v) < .1) {
             ColorImagePoint col = manager.Map(coord.point);
             if (col.X >= 0 && col.X < manager.Width && col.Y >= 0 && col.Y < manager.Height) {
-              image[col.Y * manager.Width + col.X] = transparency(image[col.Y * manager.Width + col.X], 0xFFFF0000);
+              image[col.Y * manager.Width + col.X] = 0xFFFF0000;
 
-              SkeletonPoint pt = new SkeletonPoint();
-              pt.X = col.X;
-              pt.Y = col.Y;
-              pt.Z = 0;
+              //SkeletonPoint pt = new SkeletonPoint();
+              //pt.X = col.X;
+              //pt.Y = col.Y;
+              //pt.Z = 0;
 
-              planePoints.Add(pt);
+              //planePoints.Add(pt);
             }
           }
         }*/
-        
+
         res = overlay.Rotate(plane.Normal, plane.Point);
-        
+
         uint[] imgOverlay = new uint[manager.Width * manager.Height];
 
         foreach (var pt in res) {
@@ -195,10 +195,10 @@ namespace KinectSample {
 
           //Debug.WriteLine(point.Y + " " + point.X);
           //Debug.WriteLine(point.Z);
-          int pX = (int)((Math.Floor((overlay.Width * (point.X / point.Z))) + (manager.Width / 2)));
-          int pY = (int)((Math.Floor((overlay.Height * (point.Y / point.Z))) + ((manager.Height / 2))));
+          int pX = (int)((Math.Floor((overlay.Width * (point.X ))) + (manager.Width / 2)));
+          int pY = (int)((Math.Floor((overlay.Height * (point.Y ))) + (manager.Height / 2)));
 
-          
+
 
           int ind = (int)(pY * manager.Width + pX);
           if (ind >= 0 && ind < manager.Width * manager.Height) {
@@ -212,15 +212,14 @@ namespace KinectSample {
             image[i] = transparency(image[i], imgOverlay[i]);
           }
         }
+
+        texture.SetData<uint>(image);
+
+        spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+        spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
+        spriteBatch.End();
       }
-
-      texture.SetData<uint>(image);
-
-      spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-      spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
-      spriteBatch.End();
     }
-
     private bool contains(List<ColorImagePoint> points, int x, int y) {
       foreach (ColorImagePoint point in points) {
         if (point.X == x && point.Y == y) {
