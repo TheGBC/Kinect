@@ -96,7 +96,7 @@ namespace KinectSample {
       spriteBatch = new SpriteBatch(GraphicsDevice);
       arrow = new Arrow(Content.Load<Model>("arrow"));
 
-      tex = Content.Load<Texture2D>("g+");
+      tex = Content.Load<Texture2D>("recipe");
       overlay = new Overlay(tex);
 
       handler3D.init(GraphicsDevice, Content.Load<Effect>("effects"));
@@ -122,7 +122,7 @@ namespace KinectSample {
     }
 
     private uint transparency(uint color, uint overlay) {
-      float alpha = .25f;
+      float alpha = .5f;
       uint oldR = (color >> 16) & 0xFF;
       uint oldG = (color >> 8) & 0xFF;
       uint oldB = color & 0xFF;
@@ -183,8 +183,8 @@ namespace KinectSample {
               //planePoints.Add(pt);
             }
           }
-        }*/
-
+        }
+        */
         res = overlay.Rotate(plane.Normal, plane.Point);
 
         uint[] imgOverlay = new uint[manager.Width * manager.Height];
@@ -195,8 +195,8 @@ namespace KinectSample {
 
           //Debug.WriteLine(point.Y + " " + point.X);
           //Debug.WriteLine(point.Z);
-          int pX = (int)((Math.Floor((overlay.Width * (point.X ))) + (manager.Width / 2)));
-          int pY = (int)((Math.Floor((overlay.Height * (point.Y ))) + (manager.Height / 2)));
+          int pX = (int)((Math.Floor((overlay.Width * (point.X / ((point.Z + 1))))) + (manager.Width / 2)));
+          int pY = (int)((Math.Floor((overlay.Height * (-point.Y / ((point.Z + 1))))) + (manager.Height / 2)));
 
 
 

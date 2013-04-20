@@ -13,12 +13,22 @@ namespace KinectSample {
     private Color[] col;
     private int width;
     private int height;
-
+    
     public Overlay(Texture2D res) {
       width = res.Width;
       height = res.Height;
       col = new Color[res.Width * res.Height];
       res.GetData<Color>(col);
+      
+      for (int y = 0; y < res.Height / 2; y++) {
+        for (int x = 0; x < res.Width; x++) {
+          Color c = col[y * width + x];
+
+          col[y * width + x] = col[(height - 1 - y) * width + x];
+          col[(height - 1 - y) * width + x] = c;
+        }
+      }
+
     }
     /*
     //private static double rotX = 0;
@@ -96,6 +106,7 @@ namespace KinectSample {
     
 
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset) {
+
       //norm.Z = Math.Abs(norm.Z); //postive z axis always
       Vector3 z = new Vector3(0, 0, -1);
       double angle = Math.Acos(Vector3.Dot(norm, z) / norm.Length());
@@ -112,7 +123,7 @@ namespace KinectSample {
         rot = Vector3.Normalize(rot);
       }
 
-      Debug.WriteLine(rot);
+      //Debug.WriteLine(rot);
 
       //Debug.WriteLine("rotation vector:" + rot);
      
@@ -140,7 +151,7 @@ namespace KinectSample {
         res[i].color = col[i];
       }
 
-      /*
+      
       planePoints[0] = new Vector3(res[0].point.X, res[0].point.Y, res[0].point.Z);
       planePoints[1] = new Vector3(res[320].point.X, res[320].point.Y, res[320].point.Z);
       planePoints[2] = new Vector3(res[720].point.X, res[720].point.Y, res[720].point.Z);
@@ -158,19 +169,19 @@ namespace KinectSample {
       }
 
       float ang = (float)Math.Acos(ration);
-      */
+      
 
 
-      // Debug.WriteLine(ang);
+      //Debug.WriteLine(ang);
 
       return res;
     }
 
     private Vector3 RotatePoint(Vector3 point, Vector3 axis, double cos, double sin) {
-      Quaternion q = new Quaternion(axis, (float)cos);
+      /*Quaternion q = new Quaternion(axis, (float)cos);
       Vector3 res = Vector3.Transform(point, q);
-      return res;
-      /*
+      return res;*/
+      
       float x = point.X;
       float y = point.Y;
       float z = point.Z;
@@ -184,18 +195,18 @@ namespace KinectSample {
       float nY = (float)((v * dot * (1 - cos)) + (y * cos) + (sin * ((w * x) - (u * z))));
       float nZ = (float)((w * dot * (1 - cos)) + (z * cos) + (sin * ((-v * x) + (u * y))));
 
-      return new Vector3(nX, nY, nZ);*/
+      return new Vector3(nX, nY, nZ);
     }
 
     private Vector3[] Points(Color[] col, Vector3 v) {
       Vector3[] res = new Vector3[col.Length];
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          float indX = (float)x / (float)width;
-          float indY = (float)y / (float)height;
+          float indX = (float)(x - width / 2) / (float)width;
+          float indY = (float)(y - height / 2) / (float)height;
           //Debug.WriteLine(indX + " " + indY);
           //res[y * width + x] = new Vector3(x - (width / 2) , y - (height / 2), v.Z * 100);
-          res[y * width + x] = new Vector3(indX, indY, 1);
+          res[y * width + x] = new Vector3(indX, indY, v.Z);
         }
       }
       return res;

@@ -46,7 +46,7 @@ namespace KinectSample {
       int iterations = 0;
 
       // Loop until one condition is met
-      while (memberCount < coordinates.Count / 5 && ++iterations < 100) {
+      while (memberCount < coordinates.Count / 15 && ++iterations < 100) {
         // Clear all members
         planePoints.Clear();
 
