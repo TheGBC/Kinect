@@ -122,7 +122,7 @@ namespace KinectSample {
     }
 
     private uint transparency(uint color, uint overlay) {
-      float alpha = .5f;
+      float alpha = .75f;
       uint oldR = (color >> 16) & 0xFF;
       uint oldG = (color >> 8) & 0xFF;
       uint oldB = color & 0xFF;
@@ -166,7 +166,7 @@ namespace KinectSample {
 
       bool[] planePoints = manager.PlanePoints;
 
-      if (plane != null /*&& planePoints != null*/) {
+      if (plane != null) {
         /*
         foreach (var coord in coords) {
           Vector3 v = new Vector3(coord.point.X, coord.point.Y, coord.point.Z);
@@ -174,20 +174,49 @@ namespace KinectSample {
             ColorImagePoint col = manager.Map(coord.point);
             if (col.X >= 0 && col.X < manager.Width && col.Y >= 0 && col.Y < manager.Height) {
               image[col.Y * manager.Width + col.X] = 0xFFFF0000;
-
-              //SkeletonPoint pt = new SkeletonPoint();
-              //pt.X = col.X;
-              //pt.Y = col.Y;
-              //pt.Z = 0;
-
-              //planePoints.Add(pt);
+              if (col.X > 0) {
+                uint c = image[col.Y * manager.Width + (col.X - 1)];
+                image[col.Y * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+              }
+              if (col.X < manager.Width) {
+                uint c = image[col.Y * manager.Width + (col.X + 1)];
+                image[col.Y * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+              }
+              if (col.Y > 0) {
+                uint c = image[(col.Y - 1) * manager.Width + col.X];
+                image[(col.Y - 1) * manager.Width + col.X] = transparency(c, 0xFFFF0000);
+              }
+              if (col.Y < manager.Height) {
+                uint c = image[(col.Y + 1) * manager.Width + col.X];
+                image[(col.Y + 1) * manager.Width + col.X] = transparency(c, 0xFFFF0000);
+              }
+              if (col.X > 0 && col.Y > 0) {
+                uint c = image[(col.Y - 1) * manager.Width + (col.X - 1)];
+                image[(col.Y - 1) * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+              }
+              if (col.X < manager.Width && col.Y > 0) {
+                uint c = image[(col.Y - 1) * manager.Width + (col.X + 1)];
+                image[(col.Y - 1) * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+              }
+              if (col.X > 0 && col.Y < manager.Height) {
+                uint c = image[(col.Y + 1) * manager.Width + (col.X - 1)];
+                image[(col.Y + 1) * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+              }
+              if (col.X < manager.Width && col.Y < manager.Height) {
+                uint c = image[(col.Y + 1) * manager.Width + (col.X + 1)];
+                image[(col.Y + 1) * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+              }
             }
           }
-        }
-        */
-        res = overlay.Rotate(plane.Normal, plane.Point);
+        }*/
+        
+        
+        
+        res = overlay.Rotate(plane.Normal, plane.Point, manager.AccelerometerReading());
 
         uint[] imgOverlay = new uint[manager.Width * manager.Height];
+
+
 
         foreach (var pt in res) {
 
@@ -209,14 +238,16 @@ namespace KinectSample {
         imgOverlay = Algorithm.Dilation(imgOverlay, manager.Width, manager.Height);
         for (int i = 0; i < imgOverlay.Length; i++) {
           if (imgOverlay[i] != 0 && planePoints[i]) {
-            image[i] = transparency(image[i], imgOverlay[i]);
+            //image[i] = transparency(image[i], imgOverlay[i]);
+            image[i] = imgOverlay[i];
           }
         }
-
+        
         texture.SetData<uint>(image);
 
         spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
         spriteBatch.Draw(texture, new Rectangle(0, 0, manager.Width, manager.Height), Color.White);
+        //spriteBatch.Draw(tex, new Rectangle((int)(manager.Width - tex.Width / 1.5f) / 2, (int)(manager.Height - tex.Height / 1.5f) / 2, (int)(tex.Width / 1.5f), (int)(tex.Height / 1.5f)), Color.White);
         spriteBatch.End();
       }
     }

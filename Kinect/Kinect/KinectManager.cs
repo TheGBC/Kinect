@@ -155,6 +155,10 @@ namespace KinectSample {
       return mapper.MapSkeletonPointToColorPoint(pt, COLOR_FORMAT);
     }
 
+    public Microsoft.Kinect.Vector4 AccelerometerReading() {
+      return sensor.AccelerometerGetCurrentReading();
+    }
+
     public Plane Plane {
       get {
         Plane res = null;
