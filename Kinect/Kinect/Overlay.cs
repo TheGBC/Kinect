@@ -13,10 +13,12 @@ namespace KinectSample {
     private Color[] col;
     private int width;
     private int height;
+    private int largestSide;
     
     public Overlay(Texture2D res) {
       width = res.Width;
       height = res.Height;
+      largestSide = width > height ? width : height;
       col = new Color[res.Width * res.Height];
       res.GetData<Color>(col);
 
@@ -30,18 +32,17 @@ namespace KinectSample {
     }
 
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset, Microsoft.Kinect.Vector4 v) {
-      double rotY = Math.Atan2(norm.X, norm.Z);
-      double rotX = Math.Atan2(norm.Y, norm.Z);
-      double rotZ = (Math.Atan2(v.Y, v.X) + Math.PI / 2);
-      rotZ = 0;
+      double rotY = -Math.Atan2(norm.X, norm.Z);
+      double rotX = -Math.Atan2(norm.Y, norm.Z);
+      double rotZ = Math.Atan2(v.Y, v.X) + Math.PI / 2;
 
       Vector3[] points = Points(col, offset);
 
       KinectManager.Coordinate[] res = new KinectManager.Coordinate[points.Length];
 
-      Matrix m = Matrix.CreateRotationX((float)rotX) 
-          * Matrix.CreateRotationY((float)rotY) 
-          * Matrix.CreateRotationZ((float)rotZ);
+      Matrix m = Matrix.CreateRotationZ((float)rotZ)
+          * Matrix.CreateRotationY((float)rotY)
+          * Matrix.CreateRotationX((float)rotX); 
 
       for (int i = 0; i < points.Length; i++) {
         Vector3 p = RotatePoint(points[i], m);
@@ -62,6 +63,7 @@ namespace KinectSample {
 
     public int Width { get { return width; } }
     public int Height { get { return height; } }
+    public int LargestSide { get { return largestSide; } }
     
     /*
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset, Microsoft.Kinect.Vector4 gravity) {
@@ -165,8 +167,8 @@ namespace KinectSample {
       Vector3[] res = new Vector3[col.Length];
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          float indX = (float)(x - width / 2) / (float)width;
-          float indY = (float)(y - height / 2) / (float)height;
+          float indX = (float)(x - width / 2) / (float)largestSide;
+          float indY = (float)(y - height / 2) / (float)largestSide;
 
           res[y * width + x] = new Vector3(indX, indY, v.Z - 1);
         }

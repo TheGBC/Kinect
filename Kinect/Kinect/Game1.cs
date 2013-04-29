@@ -213,21 +213,21 @@ namespace KinectSample {
         
         
         res = overlay.Rotate(plane.Normal, plane.Point, manager.AccelerometerReading());
-
         uint[] imgOverlay = new uint[manager.Width * manager.Height];
+        int largestSide = overlay.LargestSide;
 
 
-
+        SkeletonPoint imgCenter = res[(overlay.Height + 1) * overlay.Width / 2].point;
+        Vector2 center = new Vector2(manager.Width / 2, manager.Height / 2);
+        Vector2 offset = new Vector2(
+            (float)Math.Floor((largestSide * (imgCenter.X / ((imgCenter.Z + 1))))),
+            (float)Math.Floor((largestSide * (-imgCenter.Y / ((imgCenter.Z + 1))))));
+        
         foreach (var pt in res) {
-
           SkeletonPoint point = pt.point;
 
-          //Debug.WriteLine(point.Y + " " + point.X);
-          //Debug.WriteLine(point.Z);
-          int pX = (int)((Math.Floor((overlay.Width * (point.X / ((point.Z + 1))))) + (manager.Width / 2)));
-          int pY = (int)((Math.Floor((overlay.Height * (-point.Y / ((point.Z + 1))))) + (manager.Height / 2)));
-
-
+          int pX = (int)((Math.Floor((largestSide * (point.X / ((point.Z + 1))))) + center.X - offset.X));
+          int pY = (int)((Math.Floor((largestSide * (-point.Y / ((point.Z + 1))))) + center.Y - offset.Y));
 
           int ind = (int)(pY * manager.Width + pX);
           if (ind >= 0 && ind < manager.Width * manager.Height) {
