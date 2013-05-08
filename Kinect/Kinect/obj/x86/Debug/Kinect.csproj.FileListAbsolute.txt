@@ -19,3 +19,4 @@ C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x8
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\obj\x86\Debug\Kinect.csprojResolveAssemblyReference.cache
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\recipe.xnb
 C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\square.xnb
+C:\Users\yuhao\Documents\Visual Studio 2012\Projects\Kinect\Kinect\Kinect\bin\x86\Debug\Content\graph.xnb

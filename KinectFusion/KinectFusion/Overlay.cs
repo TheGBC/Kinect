@@ -14,7 +14,7 @@ namespace KinectSample {
     private int width;
     private int height;
     private int largestSide;
-    
+
     public Overlay(Texture2D res) {
       width = res.Width;
       height = res.Height;
@@ -31,11 +31,10 @@ namespace KinectSample {
       }
     }
 
-    public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset, Microsoft.Kinect.Vector4 v, Matrix4 t) {
+    public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset, Microsoft.Kinect.Vector4 v) {
       double rotY = -Math.Atan2(norm.X, norm.Z);
       double rotX = -Math.Atan2(norm.Y, norm.Z);
       double rotZ = Math.Atan2(v.Y, v.X) + Math.PI / 2;
-      //rotZ = 0;
 
       Vector3[] points = Points(col, offset);
 
@@ -43,10 +42,10 @@ namespace KinectSample {
 
       Matrix m = Matrix.CreateRotationZ((float)rotZ)
           * Matrix.CreateRotationY((float)rotY)
-          * Matrix.CreateRotationX((float)rotX); 
+          * Matrix.CreateRotationX((float)rotX);
 
       for (int i = 0; i < points.Length; i++) {
-        Vector3 p = RotatePoint(points[i], m, t);
+        Vector3 p = RotatePoint(points[i], m);
         res[i] = new KinectManager.Coordinate();
         res[i].color = col[i];
         res[i].point = new SkeletonPoint();
@@ -58,15 +57,14 @@ namespace KinectSample {
       return res;
     }
 
-    private Vector3 RotatePoint(Vector3 p, Matrix m, Matrix4 t) {
-      Vector3 v = Vector3.Transform(p, m);
-      return v;
+    private Vector3 RotatePoint(Vector3 p, Matrix m) {
+      return Vector3.Transform(p, m);
     }
 
     public int Width { get { return width; } }
     public int Height { get { return height; } }
     public int LargestSide { get { return largestSide; } }
-    
+
     /*
     public KinectManager.Coordinate[] Rotate(Vector3 norm, Vector3 offset, Microsoft.Kinect.Vector4 gravity) {
       double roll = Math.Atan2(-gravity.X, gravity.Z);
@@ -177,6 +175,6 @@ namespace KinectSample {
       }
       return res;
     }
-    
+
   }
 }

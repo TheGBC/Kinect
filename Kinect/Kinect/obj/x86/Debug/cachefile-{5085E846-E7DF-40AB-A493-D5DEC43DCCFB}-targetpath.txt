@@ -4,3 +4,4 @@ Content\grid.xnb
 Content\g+.xnb
 Content\recipe.xnb
 Content\square.xnb
+Content\graph.xnb

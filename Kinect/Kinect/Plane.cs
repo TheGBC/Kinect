@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Kinect;
 
 namespace KinectSample {
   /// <summary>
@@ -26,15 +27,37 @@ namespace KinectSample {
       setPlane(v1, v2, p);
     }
 
+    public Matrix4 Matrix { get; set; }
+
+    public void Transform(Matrix4 mat) {
+      normal = Algorithm.transformPoint(normal, mat);
+      p = Algorithm.transformPoint(p, mat);
+    }
+
     /// <summary>
     /// The normal of the plane
     /// </summary>
-    public Vector3 Normal { get { return normal; } }
+    public Vector3 Normal { 
+      get {
+        return Algorithm.transformPoint(normal, Matrix);
+        //return normal;
+      }
+    }
 
     /// <summary>
     /// Point on Plane
     /// </summary>
-    public Vector3 Point { get { return p; } }
+    public Vector3 Point { 
+      get {
+        Vector3 v = Algorithm.transformPoint(p, Matrix);
+        v.X -= Matrix.M41;
+        v.Y -= Matrix.M42;
+        v.Z += Matrix.M43;
+        return v;
+        //return Algorithm.transformPoint(p, Matrix);
+        //return p;
+      }
+    }
 
     /// <summary>
     /// The offset of the plane

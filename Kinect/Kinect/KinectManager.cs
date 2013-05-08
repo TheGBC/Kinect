@@ -17,6 +17,7 @@ namespace KinectSample {
     // The Kinect Sensor
     private KinectSensor sensor = null;
     private CoordinateMapper mapper = null;
+    private KinectFusionHandler fusionHandler = null;
 
     // Locks to prevent untimely access to resources
     private bool frameReady = true;
@@ -54,6 +55,9 @@ namespace KinectSample {
       if (sensor == null) {
         return;
       }
+
+      fusionHandler = new KinectFusionHandler();
+      fusionHandler.Initialize(sensor);
 
       mapper = new CoordinateMapper(sensor);
 
@@ -157,6 +161,24 @@ namespace KinectSample {
 
     public Microsoft.Kinect.Vector4 AccelerometerReading() {
       return sensor.AccelerometerGetCurrentReading();
+    }
+
+    public Matrix4 Matrix {
+      get {
+        return fusionHandler.Transform;
+      }
+    }
+
+    public Matrix4 VolumeTransform {
+      get {
+        return fusionHandler.VolumeTransform;
+      }
+    }
+
+    public float Density {
+      get {
+        return fusionHandler.Density;
+      }
     }
 
     public Plane Plane {
@@ -265,13 +287,17 @@ namespace KinectSample {
           }
 
           if (depth.Length > 0 && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth > depthFrame.MinDepth && depth[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2].Depth < depthFrame.MaxDepth) {
-            Coordinate c = new Coordinate();
-            c.point = realPoints[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2];
+            if (plane == null) {
+              Coordinate c = new Coordinate();
+              c.point = realPoints[DEPTH_HEIGHT / 2 * DEPTH_WIDTH + DEPTH_WIDTH / 2];
 
-            planePoints = new HashSet<SkeletonPoint>();
-            plane = Algorithm.Ransac(c, points, planePoints);
-            
-
+              planePoints = new HashSet<SkeletonPoint>();
+              plane = Algorithm.Ransac(c, points, planePoints);
+            } else {
+              if (depth != null) {
+                fusionHandler.RouteToFusion(depth);
+              }
+            }
           }
           // Release resources, now ready for next callback
           Monitor.Exit(frameLock);

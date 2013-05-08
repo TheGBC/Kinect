@@ -141,6 +141,25 @@ namespace KinectSample {
       return input;
     }
 
+    public static Vector3 transformPoint(Vector3 v, Matrix4 matrix) {
+      Vector3 t = new Vector3(v.X, v.Y, v.Z);
+      Vector3 newV = new Vector3();
+      newV.X = matrix.M11 * t.X + matrix.M12 * t.Y + matrix.M13 * t.Z;
+      newV.Y = matrix.M21 * t.X + matrix.M22 * t.Y + matrix.M23 * t.Z;
+      newV.Z = matrix.M31 * t.X + matrix.M32 * t.Y + matrix.M33 * t.Z;
+      
+
+      /*
+      newV.X = matrix.M11 * v.X + matrix.M21 * v.Y + matrix.M31 * v.Z;
+      newV.Y = matrix.M12 * v.X + matrix.M22 * v.Y + matrix.M32 * v.Z;
+      newV.Z = matrix.M13 * v.X + matrix.M23 * v.Y + matrix.M33 * v.Z;
+      */
+
+      //Debug.WriteLine(matrix.M14 + " " + matrix.M24 + " " + matrix.M34);
+
+      return newV;
+    }
+
     /// <summary>
     /// Same as other dilation, exception with colors
     /// </summary>
