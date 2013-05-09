@@ -108,7 +108,6 @@ namespace Kinect {
     /// Intermediate storage for the depth float data converted from depth image frame
     /// </summary>
     private FusionFloatImageFrame depthFloatBuffer;
-    private FusionPointCloudImageFrame prev = null;
 
     /// <summary>
     /// Intermediate storage for the point cloud data converted from depth float image frame

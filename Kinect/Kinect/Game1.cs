@@ -112,35 +112,35 @@ namespace KinectSample {
               image[col.Y * manager.Width + col.X] = 0xFFFF0000;
               if (col.X > 0) {
                 uint c = image[col.Y * manager.Width + (col.X - 1)];
-                image[col.Y * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+                image[col.Y * manager.Width + (col.X - 1)] = 0xFFFF0000;
               }
               if (col.X < manager.Width) {
                 uint c = image[col.Y * manager.Width + (col.X + 1)];
-                image[col.Y * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+                image[col.Y * manager.Width + (col.X + 1)] = 0xFFFF0000;
               }
               if (col.Y > 0) {
                 uint c = image[(col.Y - 1) * manager.Width + col.X];
-                image[(col.Y - 1) * manager.Width + col.X] = transparency(c, 0xFFFF0000);
+                image[(col.Y - 1) * manager.Width + col.X] = 0xFFFF0000;
               }
               if (col.Y < manager.Height) {
                 uint c = image[(col.Y + 1) * manager.Width + col.X];
-                image[(col.Y + 1) * manager.Width + col.X] = transparency(c, 0xFFFF0000);
+                image[(col.Y + 1) * manager.Width + col.X] = 0xFFFF0000;
               }
               if (col.X > 0 && col.Y > 0) {
                 uint c = image[(col.Y - 1) * manager.Width + (col.X - 1)];
-                image[(col.Y - 1) * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+                image[(col.Y - 1) * manager.Width + (col.X - 1)] = 0xFFFF0000;
               }
               if (col.X < manager.Width && col.Y > 0) {
                 uint c = image[(col.Y - 1) * manager.Width + (col.X + 1)];
-                image[(col.Y - 1) * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+                image[(col.Y - 1) * manager.Width + (col.X + 1)] = 0xFFFF0000;
               }
               if (col.X > 0 && col.Y < manager.Height) {
                 uint c = image[(col.Y + 1) * manager.Width + (col.X - 1)];
-                image[(col.Y + 1) * manager.Width + (col.X - 1)] = transparency(c, 0xFFFF0000);
+                image[(col.Y + 1) * manager.Width + (col.X - 1)] = 0xFFFF0000;
               }
               if (col.X < manager.Width && col.Y < manager.Height) {
                 uint c = image[(col.Y + 1) * manager.Width + (col.X + 1)];
-                image[(col.Y + 1) * manager.Width + (col.X + 1)] = transparency(c, 0xFFFF0000);
+                image[(col.Y + 1) * manager.Width + (col.X + 1)] = 0xFFFF0000;
               }
             }
           }
@@ -161,11 +161,6 @@ namespace KinectSample {
 
         ColorImagePoint cip = manager.Map(skpt);
         Vector2 t = new Vector2(cip.X, cip.Y);
-
-        Vector2 center = new Vector2(manager.Width / 2, manager.Height / 2);
-        Vector2 transform = new Vector2((c.X / (c.Z + 1)) - (plane.Point.X / (plane.Point.Z + 1)),
-            (c.Y / (c.Z + 1)) - (plane.Point.Y / (plane.Point.Z + 1)));
-
         Vector2 offset = new Vector2(
             (float)Math.Floor((largestSide * (imgCenter.X / ((imgCenter.Z + 1))))),
             (float)Math.Floor((largestSide * (-imgCenter.Y / ((imgCenter.Z + 1))))));
@@ -173,19 +168,18 @@ namespace KinectSample {
         foreach (var pt in res) {
           SkeletonPoint point = pt.point;
 
-          int pX = (int)((Math.Floor((largestSide * (point.X / ((point.Z + 1))))) + t.X - offset.X));
-          int pY = (int)((Math.Floor((largestSide * (-point.Y / ((point.Z + 1))))) + t.Y - offset.Y));
+          int pX = (int)((largestSide * (point.X / (point.Z + 1))) + t.X - offset.X);
+          int pY = (int)((largestSide * (-point.Y / (point.Z + 1))) + t.Y - offset.Y);
 
           int ind = (int)(pY * manager.Width + pX);
-          if (ind >= 0 && ind < manager.Width * manager.Height) {
+          if (pX >= 0 && pX < manager.Width && pY >= 0 && pY < manager.Height) {
             imgOverlay[ind] = UintFromColor(pt.color);
           }
         }
         
         imgOverlay = Algorithm.Dilation(imgOverlay, manager.Width, manager.Height);
         for (int i = 0; i < imgOverlay.Length; i++) {
-          if (imgOverlay[i] != 0 && planePoints[i]) {
-            //image[i] = transparency(image[i], imgOverlay[i]);
+          if (imgOverlay[i] != 0 /*&& planePoints[i]*/) {
             image[i] = imgOverlay[i];
           }
         }

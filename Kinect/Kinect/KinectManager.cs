@@ -209,12 +209,8 @@ namespace KinectSample {
 
           foreach(SkeletonPoint p in planePoints){
             ColorImagePoint pt = mapper.MapSkeletonPointToColorPoint(p, COLOR_FORMAT);
-            SkeletonPoint newSp = new SkeletonPoint();
-            newSp.X = pt.X;
-            newSp.Y = pt.Y;
-            newSp.Z = 0;
             if (pt.X >= 0 && pt.X < WIDTH && pt.Y >= 0 && pt.Y < HEIGHT) {
-              res[(int)(newSp.Y * WIDTH + newSp.X)] = true;
+              res[(int)(pt.Y * WIDTH + pt.X)] = true;
             }
           }
 
@@ -295,6 +291,20 @@ namespace KinectSample {
               plane = Algorithm.Ransac(c, points, planePoints);
             } else {
               if (depth != null) {
+
+                
+                plane.Matrix = fusionHandler.Transform;
+                if (fusionHandler.Transform == null) {
+                  plane.Matrix = Matrix4.Identity;
+                }
+
+                planePoints.Clear();
+                foreach (SkeletonPoint p in realPoints) {
+                  Vector3 v = new Vector3(p.X, p.Y, p.Z);
+                  if (plane.getDistance(v) < .1) {
+                    planePoints.Add(p);
+                  }
+                }
                 fusionHandler.RouteToFusion(depth);
               }
             }

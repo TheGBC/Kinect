@@ -25,6 +25,7 @@ namespace KinectSample {
     /// <param name="p">A point on the plane</param>
     public Plane(Vector3 v1, Vector3 v2, Vector3 p) {
       setPlane(v1, v2, p);
+      Matrix = Matrix4.Identity;
     }
 
     public Matrix4 Matrix { get; set; }
@@ -50,9 +51,12 @@ namespace KinectSample {
     public Vector3 Point { 
       get {
         Vector3 v = Algorithm.transformPoint(p, Matrix);
+        
+        /*
         v.X -= Matrix.M41;
         v.Y -= Matrix.M42;
-        v.Z += Matrix.M43;
+        v.Z -= Matrix.M43;
+        */
         return v;
         //return Algorithm.transformPoint(p, Matrix);
         //return p;
@@ -62,7 +66,11 @@ namespace KinectSample {
     /// <summary>
     /// The offset of the plane
     /// </summary>
-    public float Offset { get { return d; } }
+    public float Offset { 
+      get {
+        return -((Normal.X * Point.X) + (Normal.Y * Point.Y) + (Normal.Z * Point.Z)); 
+      } 
+    }
 
     /// <summary>
     /// Set the plane with Two Vectors v1, v2 and point on plane p
@@ -92,8 +100,10 @@ namespace KinectSample {
     /// <param name="v">A point</param>
     /// <returns>absolute value of the distance between the point and the plane</returns>
     public double getDistance(Vector3 v) {
-      return Math.Abs(((normal.X * v.X) + (normal.Y * v.Y) + (normal.Z * v.Z) + d)
-        / normal.Length());
+      Vector3 n = Normal;
+
+      return Math.Abs(((n.X * v.X) + (n.Y * v.Y) + (n.Z * v.Z) + Offset)
+        / n.Length());
     }
 
 
@@ -110,6 +120,7 @@ namespace KinectSample {
       newPlane.p = p;
 
       newPlane.d = d;
+      newPlane.Matrix = Matrix;
       return newPlane;
     }
   }
